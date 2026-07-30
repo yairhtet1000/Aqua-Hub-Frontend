@@ -1,0 +1,112 @@
+import { Link, useParams } from "react-router-dom";
+import { Calendar, Fish, MapPin, PenSquare, UserPlus } from "lucide-react";
+import PostCard from "../components/PostCard";
+import { currentUser, postsByUser, userById } from "../data/mockData";
+
+const UserProfile = ({ own = false }) => {
+  const { id } = useParams();
+  const profile = own ? currentUser : userById(id);
+  const userPosts = postsByUser(profile?.id);
+
+  if (!profile) {
+    return (
+      <div className="rounded-3xl bg-white p-12 text-center font-black text-slate-600 shadow-xl dark:bg-slate-950 dark:text-slate-300">
+        User profile not found.
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto grid w-[min(980px,100%)] gap-5">
+      <section className="overflow-hidden rounded-4xl border border-slate-200 bg-white shadow-2xl shadow-slate-950/8 dark:border-slate-800 dark:bg-slate-950">
+        <div className="h-36 bg-[linear-gradient(90deg,rgba(15,118,110,.95),rgba(6,182,212,.65)),url('https://images.unsplash.com/photo-1583212292454-1fe6229603b7?auto=format&fit=crop&w=1400&q=80')] bg-cover bg-center" />
+        <div className="grid grid-cols-[auto_1fr_auto] items-end gap-5 p-6 pt-0 max-md:grid-cols-1">
+          <img
+            className="-mt-16 h-32 w-32 rounded-full border-4 border-white object-cover shadow-xl dark:border-slate-950"
+            src={profile.avatar}
+            alt=""
+          />
+          <div className="min-w-0 pb-2">
+            <span className="text-sm font-black uppercase tracking-[0.16em] text-teal-700">
+              @{profile.username}
+            </span>
+            <h1 className="mt-1 text-4xl font-black tracking-tight text-slate-950 dark:text-white">
+              {profile.name}
+            </h1>
+            <p className="mt-3 max-w-2xl leading-7 text-slate-600 dark:text-slate-300">
+              {profile.bio}
+            </p>
+            <div className="mt-4 flex flex-wrap gap-3 text-sm font-bold text-slate-500 dark:text-slate-400">
+              <span className="inline-flex items-center gap-2">
+                <Fish size={17} />
+                {profile.favoriteFish}
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <MapPin size={17} />
+                {profile.location}
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <Calendar size={17} />
+                Joined {new Date(profile.joinedAt).getFullYear()}
+              </span>
+            </div>
+          </div>
+          {own ? (
+            <Link
+              className="inline-flex h-12 min-w-36 items-center justify-center gap-2 rounded-full bg-teal-700 px-5 text-sm font-black text-white shadow-lg shadow-teal-900/20"
+              to="/settings/profile"
+            >
+              <PenSquare size={18} />
+              Edit profile
+            </Link>
+          ) : (
+            <button className="inline-flex h-12 min-w-36 items-center justify-center gap-2 rounded-full bg-teal-700 px-5 text-sm font-black text-white shadow-lg shadow-teal-900/20">
+              <UserPlus size={18} />
+              Follow
+            </button>
+          )}
+        </div>
+      </section>
+
+      <section className="grid grid-cols-4 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-950/5 dark:border-slate-800 dark:bg-slate-950 max-sm:grid-cols-2">
+        {[
+          ["Posts", profile.stats.posts],
+          ["Comments", profile.stats.comments],
+          ["Followers", profile.stats.followers],
+          ["Following", profile.stats.following],
+        ].map(([label, value]) => (
+          <div
+            className="grid gap-1 border-r border-slate-100 p-5 text-center last:border-r-0 dark:border-slate-800 max-sm:border-b"
+            key={label}
+          >
+            <strong className="text-3xl font-black text-teal-800">
+              {value}
+            </strong>
+            <span className="text-sm font-black text-slate-500 dark:text-slate-400">{label}</span>
+          </div>
+        ))}
+      </section>
+
+      <section className="grid gap-4">
+        <div className="flex items-end justify-between">
+          <div>
+            <p className="text-sm font-black uppercase tracking-[0.16em] text-teal-700">
+              Member activity
+            </p>
+            <h2 className="text-2xl font-black text-slate-950 dark:text-white">
+              {own ? "My posts" : `${profile.name}'s posts`}
+            </h2>
+          </div>
+          <span className="rounded-full bg-white px-4 py-2 text-sm font-black text-slate-600 shadow-sm ring-1 ring-slate-200 dark:bg-slate-950 dark:text-slate-300 dark:ring-slate-800">
+            {userPosts.length} posts
+          </span>
+        </div>
+        {userPosts.map((post) => (
+          <PostCard key={post.id} post={post} />
+        ))}
+      </section>
+    </div>
+  );
+};
+
+export default UserProfile;
