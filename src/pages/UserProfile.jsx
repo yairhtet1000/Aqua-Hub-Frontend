@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Calendar, Fish, MapPin, PenSquare, UserPlus } from "lucide-react";
 import PostCard from "../components/PostCard";
-import { useAuth } from "../hooks";
+import { useAuth, useToast } from "../hooks";
 import api from "../api/axios";
 import { getImageUrl } from "../utils/imageUrl";
+import FollowModal from "../components/FollowModal";
 
 const UserProfile = ({ own = false }) => {
   const { id } = useParams();
@@ -14,6 +15,13 @@ const UserProfile = ({ own = false }) => {
   const [totalPosts, setTotalPosts] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [followLoading, setFollowLoading] = useState(false);
+  const [followStatus, setFollowStatus] = useState({ is_following: false, is_friend: false });
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [showFollowersModal, setShowFollowersModal] = useState(false);
+  const [showFollowingModal, setShowFollowingModal] = useState(false);
+  const { addToast } = useToast();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -29,6 +37,8 @@ const UserProfile = ({ own = false }) => {
           userData = res.data.user || res.data;
         }
         setProfile(userData);
+        setFollowersCount(userData.followers_count ?? 0);
+        setFollowingCount(userData.following_count ?? 0);
 
         const postsRes = await api.get("/posts", {
           params: { user_id: userData.id },
@@ -45,6 +55,39 @@ const UserProfile = ({ own = false }) => {
 
     fetchData();
   }, [id, own]);
+
+  const handleFollowToggle = async () => {
+    if (!profile || followLoading) return;
+
+    const previousStatus = { ...followStatus };
+    const previousFollowersCount = followersCount;
+    const optimisticFollowing = !followStatus.is_following;
+
+    setFollowStatus({
+      is_following: optimisticFollowing,
+      is_friend: optimisticFollowing && previousStatus.is_friend,
+    });
+    setFollowersCount((prev) => (optimisticFollowing ? prev + 1 : prev - 1));
+    setFollowLoading(true);
+
+    try {
+      const endpoint = optimisticFollowing ? `/users/${profile.id}/follow` : `/users/${profile.id}/unfollow`;
+      const response = await api[optimisticFollowing ? 'post' : 'delete'](endpoint);
+      const data = response.data;
+      setFollowStatus({
+        is_following: data.is_following,
+        is_friend: data.is_friend,
+      });
+      setFollowersCount((prev) => (data.is_following ? prev + 1 : prev - 1));
+      addToast(data.message, "success");
+    } catch {
+      setFollowStatus(previousStatus);
+      setFollowersCount(previousFollowersCount);
+      addToast("Failed to update follow status.", "error");
+    } finally {
+      setFollowLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -115,9 +158,25 @@ const UserProfile = ({ own = false }) => {
               Edit profile
             </Link>
           ) : (
-            <button className="inline-flex h-12 min-w-36 items-center justify-center gap-2 rounded-full bg-teal-700 px-5 text-sm font-black text-white shadow-lg shadow-teal-900/20">
-              <UserPlus size={18} />
-              Follow
+            <button
+              onClick={handleFollowToggle}
+              disabled={followLoading}
+              className={`inline-flex h-12 min-w-36 items-center justify-center gap-2 rounded-full px-5 text-sm font-black shadow-lg disabled:opacity-60 ${
+                followStatus.is_following
+                  ? "border border-slate-200 bg-white text-slate-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
+                  : "bg-teal-700 text-white shadow-teal-900/20"
+              }`}
+            >
+              {followLoading ? (
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              ) : followStatus.is_following ? (
+                "Unfollow"
+              ) : (
+                <>
+                  <UserPlus size={18} />
+                  Follow
+                </>
+              )}
             </button>
           )}
         </div>
@@ -127,8 +186,26 @@ const UserProfile = ({ own = false }) => {
         {[
           ["Posts", totalPosts],
           ["Comments", profile.comments_count ?? 0],
-          ["Followers", 0],
-          ["Following", 0],
+          [
+            "Followers",
+            <button
+              key="followers"
+              onClick={() => setShowFollowersModal(true)}
+              className="hover:text-teal-700 dark:hover:text-teal-300"
+            >
+              {followersCount}
+            </button>,
+          ],
+          [
+            "Following",
+            <button
+              key="following"
+              onClick={() => setShowFollowingModal(true)}
+              className="hover:text-teal-700 dark:hover:text-teal-300"
+            >
+              {followingCount}
+            </button>,
+          ],
         ].map(([label, value]) => (
           <div
             className="grid gap-1 border-r border-slate-100 p-5 text-center last:border-r-0 dark:border-slate-800 max-sm:border-b"
@@ -166,6 +243,21 @@ const UserProfile = ({ own = false }) => {
           ))
         )}
       </section>
+
+      <FollowModal
+        isOpen={showFollowersModal}
+        onClose={() => setShowFollowersModal(false)}
+        type="followers"
+        userId={profile.id}
+        title="Followers"
+      />
+      <FollowModal
+        isOpen={showFollowingModal}
+        onClose={() => setShowFollowingModal(false)}
+        type="following"
+        userId={profile.id}
+        title="Following"
+      />
     </div>
   );
 };

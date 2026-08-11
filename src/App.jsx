@@ -20,6 +20,8 @@ import PostDetail from "./pages/PostDetail";
 import PostForm from "./pages/PostForm";
 import Settings from "./pages/Settings";
 import UserProfile from "./pages/UserProfile";
+import UserProfileEdit from "./pages/UserProfileEdit";
+import AdminUserEdit from "./pages/admin/AdminUserEdit";
 import AquaHubHeader from "./components/Header";
 import BottomNav from "./components/BottomNav";
 
@@ -82,6 +84,7 @@ const AppRoutes = () => {
             <Route index element={<Overview />} />
             <Route path="reports" element={<ReportsManager />} />
             <Route path="users" element={<UserManager />} />
+            <Route path="users/:id/edit" element={<AdminUserEdit />} />
             <Route path="categories" element={<CategoryManager />} />
             <Route path="profile" element={<UserProfile own />} />
             <Route path="settings" element={<Settings section="profile" onLogout={logout} />} />
@@ -116,7 +119,7 @@ const AppRoutes = () => {
             />
             <Route
               path="/settings/profile"
-              element={<Settings section="profile" onLogout={logout} />}
+              element={<UserProfileEdit onLogout={logout} />}
             />
             <Route
               path="/settings/password"

@@ -1,10 +1,39 @@
-import { Link } from "react-router-dom";
-import { UserCheck, UsersRound } from "lucide-react";
-import { users } from "../data/mockData";
-import { getImageUrl } from "../utils/imageUrl";
+import { useEffect, useState } from "react";
+import { UsersRound } from "lucide-react";
+import api from "../api/axios";
+import { useAuth } from "../hooks";
+import FollowModal from "../components/FollowModal";
 
 const Following = () => {
-  const followedUsers = users.filter((user) => user.id !== 1);
+  const { user: authUser } = useAuth();
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [showFollowersModal, setShowFollowersModal] = useState(false);
+  const [showFollowingModal, setShowFollowingModal] = useState(false);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      setLoading(true);
+      try {
+        const res = await api.get("/user");
+        setProfile(res.data.user || res.data);
+      } catch {
+        // silent fail
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-teal-700 border-t-transparent" />
+      </div>
+    );
+  }
 
   return (
     <section className="mx-auto grid w-[min(860px,100%)] gap-5">
@@ -16,36 +45,50 @@ const Following = () => {
         <div className="flex items-end justify-between gap-4">
           <h1 className="text-4xl font-black tracking-tight">Following</h1>
           <span className="rounded-full bg-white/10 px-4 py-2 text-sm font-black ring-1 ring-white/15">
-            {followedUsers.length} users
+            {profile?.following_count ?? 0} following
           </span>
         </div>
       </div>
 
       <div className="grid gap-3">
-        {followedUsers.map((user) => (
-          <Link
-            className="grid grid-cols-[56px_1fr_auto] items-center gap-4 rounded-3xl border border-slate-200 bg-white p-4 shadow-xl shadow-slate-950/5 transition hover:-translate-y-0.5 hover:shadow-2xl dark:border-slate-800 dark:bg-slate-950 max-sm:grid-cols-[56px_1fr]"
-            to={`/users/${user.id}`}
-            key={user.id}
-          >
-            <img
-              className="h-14 w-14 rounded-full object-cover"
-              src={getImageUrl(user.avatar)}
-              alt=""
-            />
-            <div className="min-w-0">
-              <strong className="block text-lg font-black text-slate-950 dark:text-white">
-                {user.name}
-              </strong>
-              <p className="line-clamp-2 leading-6 text-slate-600 dark:text-slate-300">{user.bio}</p>
+        {!profile ? (
+          <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm font-semibold text-slate-500 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400">
+            Unable to load following list.
+          </div>
+        ) : (
+          <div className="grid gap-3">
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={() => setShowFollowingModal(true)}
+                className="inline-flex h-10 items-center gap-2 rounded-xl bg-teal-700 px-5 text-sm font-black text-white shadow-lg shadow-teal-900/20"
+              >
+                View Following ({profile.following_count ?? 0})
+              </button>
+              <button
+                onClick={() => setShowFollowersModal(true)}
+                className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-sm font-black text-slate-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
+              >
+                View Followers ({profile.followers_count ?? 0})
+              </button>
             </div>
-            <span className="inline-flex h-10 min-w-32 items-center justify-center gap-2 rounded-full bg-teal-50 px-4 text-sm font-black text-teal-800 dark:bg-teal-950 dark:text-teal-300 max-sm:col-span-2">
-              <UserCheck size={17} />
-              Following
-            </span>
-          </Link>
-        ))}
+          </div>
+        )}
       </div>
+
+      <FollowModal
+        isOpen={showFollowingModal}
+        onClose={() => setShowFollowingModal(false)}
+        type="following"
+        userId={authUser?.id}
+        title="Following"
+      />
+      <FollowModal
+        isOpen={showFollowersModal}
+        onClose={() => setShowFollowersModal(false)}
+        type="followers"
+        userId={authUser?.id}
+        title="Followers"
+      />
     </section>
   );
 };

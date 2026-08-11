@@ -1,7 +1,6 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
-  Bell,
   Bookmark,
   Filter,
   Home,
@@ -13,8 +12,9 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { categories, notifications, userById } from "../data/mockData";
+import { categories } from "../data/mockData";
 import { getImageUrl } from "../utils/imageUrl";
+import NotificationDropdown from "./NotificationDropdown";
 
 const navLinkClass = ({ isActive }) =>
   [
@@ -29,13 +29,8 @@ const iconButtonClass =
 
 const AquaHubHeader = ({ currentUser, theme, onToggleTheme }) => {
   const navigate = useNavigate();
-  const [showNotifications, setShowNotifications] = useState(false);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [showTopics, setShowTopics] = useState(false);
-  const unreadCount = useMemo(
-    () => notifications.filter((item) => item.unread).length,
-    [],
-  );
 
   const handleSearch = (event) => {
     event.preventDefault();
@@ -122,73 +117,7 @@ const AquaHubHeader = ({ currentUser, theme, onToggleTheme }) => {
             <PenSquare size={18} />
           </Link>
 
-          <button
-            className="relative grid h-10 w-10 place-items-center rounded-md border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 hover:text-slate-950 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white max-lg:hidden"
-            onClick={() => setShowNotifications((value) => !value)}
-            title="Notifications"
-          >
-            <Bell size={19} />
-            {unreadCount > 0 && (
-              <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-rose-500 px-1 text-[11px] font-bold text-white">
-                {unreadCount}
-              </span>
-            )}
-          </button>
-
-          {showNotifications && (
-            <div className="absolute right-0 top-12 w-[min(380px,calc(100vw-24px))] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl shadow-slate-950/10 dark:border-slate-800 dark:bg-slate-950">
-              <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-slate-800">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                    Account activity
-                  </p>
-                  <h2 className="text-lg font-bold text-slate-950 dark:text-white">
-                    Notifications
-                  </h2>
-                </div>
-                <span className="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700 dark:bg-slate-900 dark:text-slate-200">
-                  {unreadCount} unread
-                </span>
-              </div>
-              <div className="max-h-105 overflow-y-auto p-2">
-                {notifications.map((item) => {
-                  const actor = userById(item.actorId);
-                  return (
-                    <Link
-                      className="grid grid-cols-[40px_1fr] gap-3 rounded-lg p-3 transition hover:bg-slate-50 dark:hover:bg-slate-900"
-                      key={item.id}
-                      to={
-                        item.postId
-                          ? `/posts/${item.postId}`
-                          : `/users/${actor.id}`
-                      }
-                      onClick={() => setShowNotifications(false)}
-                    >
-                      <img
-                        className="h-10 w-10 rounded-full object-cover"
-                        src={getImageUrl(actor.avatar)}
-                        alt=""
-                      />
-                      <span className="min-w-0">
-                        <span className="block text-sm font-semibold text-slate-950 dark:text-white">
-                          {actor.name}
-                        </span>
-                        <span className="block text-sm leading-5 text-slate-600 dark:text-slate-300">
-                          {item.text}
-                        </span>
-                        <span className="mt-1 flex items-center gap-2 text-xs font-medium text-slate-400">
-                          {item.unread && (
-                            <span className="h-2 w-2 rounded-full bg-rose-500" />
-                          )}
-                          Account notification
-                        </span>
-                      </span>
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+          <NotificationDropdown />
 
           <button
             className={iconButtonClass}

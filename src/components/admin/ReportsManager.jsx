@@ -5,6 +5,7 @@ import {
   Filter,
   MessageSquare,
   RefreshCcw,
+  Search,
   ShieldCheck,
   Trash2,
   User,
@@ -26,14 +27,17 @@ const ReportsManager = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [statusFilter, setStatusFilter] = useState("");
+  const [search, setSearch] = useState("");
   const [actionLoading, setActionLoading] = useState(null);
   const { addToast } = useToast();
 
   const fetchReports = useCallback(async () => {
     setLoading(true);
     try {
-      const params = statusFilter ? { status: statusFilter } : {};
-      const response = await api.get("/admin/reports", { params: { ...params, page } });
+      const params = { page };
+      if (statusFilter) params.status = statusFilter;
+      if (search.trim()) params.search = search.trim();
+      const response = await api.get("/admin/reports", { params });
       setReports(response.data.data || []);
       setTotalPages(response.data.last_page || 1);
     } catch {
@@ -41,7 +45,7 @@ const ReportsManager = () => {
     } finally {
       setLoading(false);
     }
-  }, [statusFilter, addToast, page]);
+  }, [statusFilter, search, addToast, page]);
 
   useEffect(() => {
     fetchReports();
@@ -78,6 +82,23 @@ const ReportsManager = () => {
       addToast("Content deleted and report resolved.", "success");
     } catch {
       addToast("Failed to resolve report.", "error");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleBanUser = async (report) => {
+    setActionLoading(`ban-${report.id}`);
+    try {
+      await api.delete(`/admin/reports/${report.id}/ban-user`);
+      setReports((prev) =>
+        prev.map((r) =>
+          r.id === report.id ? { ...r, status: "reviewed" } : r,
+        ),
+      );
+      addToast("User has been banned.", "success");
+    } catch {
+      addToast("Failed to ban user.", "error");
     } finally {
       setActionLoading(null);
     }
@@ -135,13 +156,25 @@ const ReportsManager = () => {
         </div>
         <div className="flex items-center gap-3">
           <div className="relative">
+            <Search
+              size={16}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+            />
+            <input
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              placeholder="Search reports..."
+              className="h-10 rounded-xl border border-slate-200 bg-white pl-9 pr-4 text-sm font-semibold text-slate-700 focus:outline-teal-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
+            />
+          </div>
+          <div className="relative">
             <Filter
               size={16}
               className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
             />
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
               className="h-10 rounded-xl border border-slate-200 bg-white pl-9 pr-4 text-sm font-semibold text-slate-700 focus:outline-teal-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
             >
               {STATUS_OPTIONS.map((option) => (
@@ -269,6 +302,19 @@ const ReportsManager = () => {
                                   <Trash2 size={14} />
                                 )}
                                 Delete Content
+                              </button>
+                              <button
+                                onClick={() => handleBanUser(report)}
+                                disabled={actionLoading === `ban-${report.id}`}
+                                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 text-xs font-bold text-amber-700 transition hover:bg-amber-100 disabled:opacity-60 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200"
+                                title="Ban reported user"
+                              >
+                                {actionLoading === `ban-${report.id}` ? (
+                                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-amber-700 border-t-transparent" />
+                                ) : (
+                                  <User size={14} />
+                                )}
+                                Ban User
                               </button>
                             </>
                           )}

@@ -7,6 +7,7 @@ import {
   MessageCircle,
   Pencil,
   Trash2,
+  UserPlus,
 } from "lucide-react";
 import { useAuth } from "../hooks";
 import { useToast } from "../hooks";
@@ -37,9 +38,10 @@ const PostCard = ({ post }) => {
   const [likesCount, setLikesCount] = useState(post.likes?.length || 0);
   const [likeLoading, setLikeLoading] = useState(false);
   const [showReport, setShowReport] = useState(false);
-  const [bookmarked, setBookmarked] = useState(
-    post.likes?.some((like) => like.id === user?.id) || false
-  );
+  const [bookmarked, setBookmarked] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
+  const [followStatus, setFollowStatus] = useState({ is_following: false, is_friend: false });
 
   const author = post.user;
   const isOwner = author?.id === user?.id;
@@ -76,6 +78,56 @@ const PostCard = ({ post }) => {
     addToast("Report submitted. Our team will review it shortly.", "success");
   };
 
+  const handleFollowToggle = async () => {
+    if (followLoading || !author) return;
+
+    const previousStatus = { ...followStatus };
+    const optimisticFollowing = !followStatus.is_following;
+    setFollowStatus({
+      is_following: optimisticFollowing,
+      is_friend: optimisticFollowing && previousStatus.is_friend,
+    });
+    setFollowLoading(true);
+
+    try {
+      const endpoint = optimisticFollowing ? `/users/${author.id}/follow` : `/users/${author.id}/unfollow`;
+      const response = await api[optimisticFollowing ? 'post' : 'delete'](endpoint);
+      const data = response.data;
+      setFollowStatus({
+        is_following: data.is_following,
+        is_friend: data.is_friend,
+      });
+      addToast(data.message, "success");
+    } catch {
+      setFollowStatus(previousStatus);
+      addToast("Failed to update follow status.", "error");
+    } finally {
+      setFollowLoading(false);
+    }
+  };
+
+  const handleBookmark = async () => {
+    if (saveLoading) return;
+
+    const previousSaved = bookmarked;
+
+    setBookmarked((prev) => !prev);
+    setSaveLoading(true);
+
+    try {
+      if (!previousSaved) {
+        await api.post(`/posts/${post.id}/save`);
+      } else {
+        await api.delete(`/posts/${post.id}/save`);
+      }
+    } catch {
+      setBookmarked(previousSaved);
+      addToast("Failed to update bookmark.", "error");
+    } finally {
+      setSaveLoading(false);
+    }
+  };
+
   return (
     <>
       <article className="rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
@@ -101,11 +153,35 @@ const PostCard = ({ post }) => {
               </span>
             </Link>
 
-            {post.status === "published" && (
-              <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
-                Published
-              </span>
-            )}
+            <div className="flex items-center gap-2">
+              {post.status === "published" && (
+                <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                  Published
+                </span>
+              )}
+              {!isOwner && author && (
+                <button
+                  onClick={handleFollowToggle}
+                  disabled={followLoading}
+                  className={`inline-flex h-8 min-w-16 items-center justify-center gap-1 rounded-lg px-3 text-xs font-bold transition disabled:opacity-60 ${
+                    followStatus.is_following
+                      ? "border border-slate-200 bg-white text-slate-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
+                      : "bg-teal-700 text-white"
+                  }`}
+                >
+                  {followLoading ? (
+                    <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  ) : followStatus.is_following ? (
+                    "Unfollow"
+                  ) : (
+                    <>
+                      <UserPlus size={14} />
+                      Follow
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
           </div>
 
           <Link
@@ -184,7 +260,8 @@ const PostCard = ({ post }) => {
           </Link>
 
           <button
-            onClick={() => setBookmarked((prev) => !prev)}
+            onClick={handleBookmark}
+            disabled={saveLoading}
             className={`${actionClass} ${
               bookmarked
                 ? "bg-teal-50 text-teal-800 dark:bg-teal-950 dark:text-teal-300"
@@ -192,7 +269,7 @@ const PostCard = ({ post }) => {
             }`}
           >
             <Bookmark size={17} fill={bookmarked ? "currentColor" : "none"} />
-            Save
+            {bookmarked ? "Saved" : "Save"}
           </button>
 
           <button onClick={() => setShowReport(true)} className={actionClass}>

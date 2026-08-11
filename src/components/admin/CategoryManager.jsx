@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { Plus, Pencil, Trash2, X } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Search } from "lucide-react";
 import api from "../../api/axios";
 import { useToast } from "../../hooks";
 
@@ -10,6 +10,7 @@ const CategoryManager = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
   const { addToast } = useToast();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -21,7 +22,11 @@ const CategoryManager = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await api.get("/categories", { params: { page } });
+      const params = { page };
+      if (search.trim()) {
+        params.search = search.trim();
+      }
+      const response = await api.get("/categories", { params });
       const data = response.data;
       setCategories(data.data || []);
       setTotalPages(data.last_page || 1);
@@ -30,7 +35,7 @@ const CategoryManager = () => {
     } finally {
       setLoading(false);
     }
-  }, [addToast, page]);
+  }, [addToast, page, search]);
 
   useEffect(() => {
     fetchCategories();
@@ -58,6 +63,11 @@ const CategoryManager = () => {
     setEditingCategory(null);
     setFormData({ name: "", description: "" });
     setFormError("");
+  };
+
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
+    setPage(1);
   };
 
   const handleSubmit = async (e) => {
@@ -123,13 +133,27 @@ const CategoryManager = () => {
             Create and manage post categories.
           </p>
         </div>
-        <button
-          onClick={openCreateModal}
-          className="inline-flex h-10 items-center gap-2 rounded-xl bg-teal-700 px-4 text-sm font-black text-white shadow-lg shadow-teal-900/20 transition hover:bg-teal-800"
-        >
-          <Plus size={16} />
-          New Category
-        </button>
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Search
+              size={16}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+            />
+            <input
+              value={search}
+              onChange={handleSearchChange}
+              placeholder="Search categories..."
+              className="h-10 rounded-xl border border-slate-200 bg-white pl-9 pr-4 text-sm font-semibold text-slate-700 focus:outline-teal-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
+            />
+          </div>
+          <button
+            onClick={openCreateModal}
+            className="inline-flex h-10 items-center gap-2 rounded-xl bg-teal-700 px-4 text-sm font-black text-white shadow-lg shadow-teal-900/20 transition hover:bg-teal-800"
+          >
+            <Plus size={16} />
+            New Category
+          </button>
+        </div>
       </div>
 
       {error && (

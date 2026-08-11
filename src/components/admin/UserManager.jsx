@@ -1,9 +1,11 @@
 import { useEffect, useState, useCallback } from "react";
-import { ChevronDown, Loader2, ShieldCheck, User } from "lucide-react";
+import { ChevronDown, Loader2, ShieldCheck, User, Search } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import { useToast } from "../../hooks";
 
 const UserManager = () => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -11,12 +13,17 @@ const UserManager = () => {
   const [updatingId, setUpdatingId] = useState(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [search, setSearch] = useState("");
   const { addToast } = useToast();
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await api.get("/admin/users", { params: { page } });
+      const params = { page };
+      if (search.trim()) {
+        params.search = search.trim();
+      }
+      const response = await api.get("/admin/users", { params });
       setUsers(response.data.data || []);
       setTotalPages(response.data.last_page || 1);
     } catch {
@@ -24,7 +31,7 @@ const UserManager = () => {
     } finally {
       setLoading(false);
     }
-  }, [addToast, page]);
+  }, [addToast, page, search]);
 
   const fetchRoles = useCallback(async () => {
     setRolesLoading(true);
@@ -42,6 +49,11 @@ const UserManager = () => {
     fetchUsers();
     fetchRoles();
   }, [fetchUsers, fetchRoles]);
+
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
+    setPage(1);
+  };
 
   const handleRoleChange = async (userId, newRoleId) => {
     setUpdatingId(userId);
@@ -94,13 +106,27 @@ const UserManager = () => {
             View and manage user roles across the platform.
           </p>
         </div>
-        <button
-          onClick={fetchUsers}
-          className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-900"
-        >
-          <ShieldCheck size={16} />
-          Refresh
-        </button>
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Search
+              size={16}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+            />
+            <input
+              value={search}
+              onChange={handleSearchChange}
+              placeholder="Search users..."
+              className="h-10 rounded-xl border border-slate-200 bg-white pl-9 pr-4 text-sm font-semibold text-slate-700 focus:outline-teal-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
+            />
+          </div>
+          <button
+            onClick={fetchUsers}
+            className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-900"
+          >
+            <ShieldCheck size={16} />
+            Refresh
+          </button>
+        </div>
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
@@ -162,36 +188,42 @@ const UserManager = () => {
                         ? new Date(u.created_at).toLocaleDateString()
                         : "—"}
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <div className="relative">
-                          <select
-                            value={u.role?.id || ""}
-                            onChange={(e) =>
-                              handleRoleChange(u.id, e.target.value)
-                            }
-                            disabled={updatingId === u.id}
-                            className="h-9 appearance-none rounded-lg border border-slate-200 bg-white pl-3 pr-8 text-xs font-bold text-slate-700 focus:outline-teal-700 disabled:opacity-60 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
-                          >
-                            {roles.map((role) => (
-                              <option key={role.id} value={role.id}>
-                                {role.name}
-                              </option>
-                            ))}
-                          </select>
-                          <ChevronDown
-                            size={14}
-                            className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-slate-400"
-                          />
-                        </div>
-                        {updatingId === u.id && (
-                          <Loader2
-                            size={16}
-                            className="animate-spin text-teal-700"
-                          />
-                        )}
-                      </div>
-                    </td>
+                     <td className="px-6 py-4">
+                       <div className="flex items-center gap-2">
+                         <button
+                           onClick={() => navigate(`/admin/users/${u.id}/edit`)}
+                           className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-900"
+                         >
+                           Edit
+                         </button>
+                         <div className="relative">
+                           <select
+                             value={u.role?.id || ""}
+                             onChange={(e) =>
+                               handleRoleChange(u.id, e.target.value)
+                             }
+                             disabled={updatingId === u.id}
+                             className="h-9 appearance-none rounded-lg border border-slate-200 bg-white pl-3 pr-8 text-xs font-bold text-slate-700 focus:outline-teal-700 disabled:opacity-60 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
+                           >
+                             {roles.map((role) => (
+                               <option key={role.id} value={role.id}>
+                                 {role.name}
+                               </option>
+                             ))}
+                           </select>
+                           <ChevronDown
+                             size={14}
+                             className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-slate-400"
+                           />
+                         </div>
+                         {updatingId === u.id && (
+                           <Loader2
+                             size={16}
+                             className="animate-spin text-teal-700"
+                           />
+                         )}
+                       </div>
+                     </td>
                   </tr>
                 ))}
               </tbody>

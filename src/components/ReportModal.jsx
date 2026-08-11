@@ -6,6 +6,7 @@ import { useToast } from "../hooks/useToast";
 const ReportModal = ({
   isOpen,
   onClose,
+  onReportSubmitted,
   reportableId,
   reportableType = "App\\Models\\Post",
 }) => {
@@ -34,6 +35,7 @@ const ReportModal = ({
       addToast("Report submitted successfully. Thank you.", "success");
       setReason("");
       onClose?.();
+      onReportSubmitted?.();
     } catch {
       addToast("Failed to submit report. Please try again.", "error");
     } finally {
