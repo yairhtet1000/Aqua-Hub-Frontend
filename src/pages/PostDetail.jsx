@@ -10,6 +10,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { currentUser, posts, userById } from "../data/mockData";
+import { getImageUrl } from "../utils/imageUrl";
 
 const actionClass =
   "inline-flex h-11 min-w-32 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-black text-slate-600 transition hover:bg-teal-50 hover:text-teal-900 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-teal-300";
@@ -33,18 +34,18 @@ const PostDetail = () => {
     <article className="mx-auto grid w-[min(960px,100%)] gap-5">
       <div className="overflow-hidden rounded-[2rem] bg-white shadow-2xl shadow-slate-950/10 ring-1 ring-slate-200 dark:bg-slate-950 dark:ring-slate-800">
         <div className="relative h-[min(430px,52vw)] min-h-72 overflow-hidden">
-          <img className="h-full w-full object-cover" src={post.image} alt="" />
+          <img className="h-full w-full object-cover" src={getImageUrl(post.image)} alt="" />
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/90 to-transparent p-7 text-white">
             <div className="mb-3 flex flex-wrap items-center gap-3 text-sm">
               <Link
                 to={`/users/${author.id}`}
                 className="inline-flex items-center gap-2 rounded-full bg-white/15 py-1 pl-1 pr-3 font-black backdrop-blur"
               >
-                <img
-                  className="h-8 w-8 rounded-full object-cover"
-                  src={author.avatar}
-                  alt=""
-                />
+                  <img
+                    className="h-8 w-8 rounded-full object-cover"
+                    src={getImageUrl(author.avatar)}
+                    alt=""
+                  />
                 {author.name}
               </Link>
               <Link
@@ -147,7 +148,7 @@ const PostDetail = () => {
                 >
                   <img
                     className="h-11 w-11 rounded-full object-cover"
-                    src={commentAuthor.avatar}
+                    src={getImageUrl(commentAuthor.avatar)}
                     alt=""
                   />
                   <div className="min-w-0">
@@ -178,7 +179,7 @@ const PostDetail = () => {
                         >
                           <img
                             className="h-9 w-9 rounded-full object-cover"
-                            src={replyAuthor.avatar}
+                            src={getImageUrl(replyAuthor.avatar)}
                             alt=""
                           />
                           <div>

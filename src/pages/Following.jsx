@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { UserCheck, UsersRound } from "lucide-react";
 import { users } from "../data/mockData";
+import { getImageUrl } from "../utils/imageUrl";
 
 const Following = () => {
   const followedUsers = users.filter((user) => user.id !== 1);
@@ -29,7 +30,7 @@ const Following = () => {
           >
             <img
               className="h-14 w-14 rounded-full object-cover"
-              src={user.avatar}
+              src={getImageUrl(user.avatar)}
               alt=""
             />
             <div className="min-w-0">

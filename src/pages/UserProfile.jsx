@@ -1,20 +1,68 @@
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Calendar, Fish, MapPin, PenSquare, UserPlus } from "lucide-react";
 import PostCard from "../components/PostCard";
-import { currentUser, postsByUser, userById } from "../data/mockData";
+import { useAuth } from "../hooks";
+import api from "../api/axios";
+import { getImageUrl } from "../utils/imageUrl";
 
 const UserProfile = ({ own = false }) => {
   const { id } = useParams();
-  const profile = own ? currentUser : userById(id);
-  const userPosts = postsByUser(profile?.id);
+  const { user: authUser } = useAuth();
+  const [profile, setProfile] = useState(null);
+  const [userPosts, setUserPosts] = useState([]);
+  const [totalPosts, setTotalPosts] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  if (!profile) {
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        let userData;
+        if (own) {
+          const res = await api.get("/user");
+          userData = res.data.user || res.data;
+        } else {
+          const res = await api.get(`/users/${id}`);
+          userData = res.data.user || res.data;
+        }
+        setProfile(userData);
+
+        const postsRes = await api.get("/posts", {
+          params: { user_id: userData.id },
+        });
+        const postsPayload = postsRes.data;
+        setUserPosts(postsPayload.data || postsPayload);
+        setTotalPosts(postsPayload.total ?? (postsPayload.data?.length ?? 0));
+      } catch {
+        setError("Failed to load profile.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [id, own]);
+
+  if (loading) {
     return (
-      <div className="rounded-3xl bg-white p-12 text-center font-black text-slate-600 shadow-xl dark:bg-slate-950 dark:text-slate-300">
-        User profile not found.
+      <div className="flex items-center justify-center py-20">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-teal-700 border-t-transparent" />
       </div>
     );
   }
+
+  if (error || !profile) {
+    return (
+      <div className="rounded-3xl bg-white p-12 text-center font-black text-slate-600 shadow-xl dark:bg-slate-950 dark:text-slate-300">
+        {error || "User profile not found."}
+      </div>
+    );
+  }
+
+  const isOwner = own || authUser?.id === profile.id;
 
   return (
     <div className="mx-auto grid w-[min(980px,100%)] gap-5">
@@ -23,35 +71,42 @@ const UserProfile = ({ own = false }) => {
         <div className="grid grid-cols-[auto_1fr_auto] items-end gap-5 p-6 pt-0 max-md:grid-cols-1">
           <img
             className="-mt-16 h-32 w-32 rounded-full border-4 border-white object-cover shadow-xl dark:border-slate-950"
-            src={profile.avatar}
+            src={getImageUrl(profile.avatar) || "https://via.placeholder.com/128"}
             alt=""
           />
           <div className="min-w-0 pb-2">
             <span className="text-sm font-black uppercase tracking-[0.16em] text-teal-700">
-              @{profile.username}
+              @{profile.name?.replace(/\s/g, "_").toLowerCase()}
             </span>
             <h1 className="mt-1 text-4xl font-black tracking-tight text-slate-950 dark:text-white">
               {profile.name}
             </h1>
             <p className="mt-3 max-w-2xl leading-7 text-slate-600 dark:text-slate-300">
-              {profile.bio}
+              {profile.bio || "No bio yet."}
             </p>
             <div className="mt-4 flex flex-wrap gap-3 text-sm font-bold text-slate-500 dark:text-slate-400">
-              <span className="inline-flex items-center gap-2">
-                <Fish size={17} />
-                {profile.favoriteFish}
-              </span>
-              <span className="inline-flex items-center gap-2">
-                <MapPin size={17} />
-                {profile.location}
-              </span>
+              {profile.favoriteFish && (
+                <span className="inline-flex items-center gap-2">
+                  <Fish size={17} />
+                  {profile.favoriteFish}
+                </span>
+              )}
+              {profile.location && (
+                <span className="inline-flex items-center gap-2">
+                  <MapPin size={17} />
+                  {profile.location}
+                </span>
+              )}
               <span className="inline-flex items-center gap-2">
                 <Calendar size={17} />
-                Joined {new Date(profile.joinedAt).getFullYear()}
+                Joined{" "}
+                {profile.created_at
+                  ? new Date(profile.created_at).getFullYear()
+                  : "Unknown"}
               </span>
             </div>
           </div>
-          {own ? (
+          {isOwner ? (
             <Link
               className="inline-flex h-12 min-w-36 items-center justify-center gap-2 rounded-full bg-teal-700 px-5 text-sm font-black text-white shadow-lg shadow-teal-900/20"
               to="/settings/profile"
@@ -70,10 +125,10 @@ const UserProfile = ({ own = false }) => {
 
       <section className="grid grid-cols-4 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-950/5 dark:border-slate-800 dark:bg-slate-950 max-sm:grid-cols-2">
         {[
-          ["Posts", profile.stats.posts],
-          ["Comments", profile.stats.comments],
-          ["Followers", profile.stats.followers],
-          ["Following", profile.stats.following],
+          ["Posts", totalPosts],
+          ["Comments", profile.comments_count ?? 0],
+          ["Followers", 0],
+          ["Following", 0],
         ].map(([label, value]) => (
           <div
             className="grid gap-1 border-r border-slate-100 p-5 text-center last:border-r-0 dark:border-slate-800 max-sm:border-b"
@@ -101,9 +156,15 @@ const UserProfile = ({ own = false }) => {
             {userPosts.length} posts
           </span>
         </div>
-        {userPosts.map((post) => (
-          <PostCard key={post.id} post={post} />
-        ))}
+        {userPosts.length === 0 ? (
+          <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm font-semibold text-slate-500 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400">
+            No posts yet.
+          </div>
+        ) : (
+          userPosts.map((post) => (
+            <PostCard key={post.id} post={post} />
+          ))
+        )}
       </section>
     </div>
   );

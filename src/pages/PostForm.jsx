@@ -1,6 +1,7 @@
 import { Link, useParams } from "react-router-dom";
 import { ImagePlus, Save, X } from "lucide-react";
 import { categories, posts } from "../data/mockData";
+import { getImageUrl } from "../utils/imageUrl";
 
 const fieldClass =
   "h-12 rounded-2xl border border-slate-200 bg-white px-4 text-slate-800 shadow-sm focus:outline-teal-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100";
@@ -81,7 +82,7 @@ const PostForm = ({ mode = "create" }) => {
           <div className="flex items-center gap-4 rounded-2xl bg-slate-50 p-3 dark:bg-slate-900">
             <img
               className="h-20 w-28 rounded-2xl object-cover"
-              src={existingPost.image}
+              src={getImageUrl(existingPost.image)}
               alt=""
             />
             <span className="font-bold text-slate-600 dark:text-slate-300">Current cover photo</span>

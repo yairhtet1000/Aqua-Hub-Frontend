@@ -10,11 +10,11 @@ import {
   Search,
   Settings,
   Sun,
-  UserRound,
   Users,
   X,
 } from "lucide-react";
 import { categories, notifications, userById } from "../data/mockData";
+import { getImageUrl } from "../utils/imageUrl";
 
 const navLinkClass = ({ isActive }) =>
   [
@@ -46,7 +46,9 @@ const AquaHubHeader = ({ currentUser, theme, onToggleTheme }) => {
 
   const goToCategory = (category) => {
     setShowTopics(false);
-    navigate(category === "All" ? "/" : `/?category=${encodeURIComponent(category)}`);
+    navigate(
+      category === "All" ? "/" : `/?category=${encodeURIComponent(category)}`,
+    );
   };
 
   return (
@@ -112,7 +114,11 @@ const AquaHubHeader = ({ currentUser, theme, onToggleTheme }) => {
             <Search size={18} />
           </button>
 
-          <Link className={`${iconButtonClass} lg:hidden`} to="/create-post" title="Create post">
+          <Link
+            className={`${iconButtonClass} lg:hidden`}
+            to="/create-post"
+            title="Create post"
+          >
             <PenSquare size={18} />
           </Link>
 
@@ -160,7 +166,7 @@ const AquaHubHeader = ({ currentUser, theme, onToggleTheme }) => {
                     >
                       <img
                         className="h-10 w-10 rounded-full object-cover"
-                        src={actor.avatar}
+                        src={getImageUrl(actor.avatar)}
                         alt=""
                       />
                       <span className="min-w-0">
@@ -201,7 +207,7 @@ const AquaHubHeader = ({ currentUser, theme, onToggleTheme }) => {
           >
             <img
               className="h-8 w-8 rounded-full object-cover"
-              src={currentUser.avatar}
+              src={getImageUrl(currentUser.avatar)}
               alt=""
             />
             <span className="max-lg:hidden">{currentUser.name}</span>
