@@ -52,9 +52,9 @@ const AuthPage = ({ mode = "login" }) => {
 
   return (
     <main className="grid min-h-screen place-items-center bg-[linear-gradient(rgba(238,245,247,.88),rgba(238,245,247,.94)),url('https://images.unsplash.com/photo-1583212292454-1fe6229603b7?auto=format&fit=crop&w=1600&q=80')] bg-cover bg-center p-6">
-      <section className="grid w-[min(460px,100%)] gap-5 rounded-[2rem] border border-white bg-white/95 p-7 shadow-2xl shadow-slate-950/15 ring-1 ring-slate-200/80 backdrop-blur">
+      <section className="grid w-[min(460px,100%)] gap-5 rounded-4xl border border-white bg-white/95 p-7 shadow-2xl shadow-slate-950/15 ring-1 ring-slate-200/80 backdrop-blur">
         <div className="inline-flex items-center gap-3 font-black text-teal-950">
-          <span className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-teal-700 to-cyan-500 text-white">
+          <span className="grid h-12 w-12 place-items-center rounded-2xl bg-linear-to-br from-teal-700 to-cyan-500 text-white">
             <Fish size={28} />
           </span>
           <span className="text-2xl">AquaHub</span>
@@ -131,7 +131,11 @@ const AuthPage = ({ mode = "login" }) => {
             disabled={processing}
           >
             {isRegister ? <UserPlus size={18} /> : <LogIn size={18} />}
-            {processing ? "Please wait..." : isRegister ? "Create account" : "Login"}
+            {processing
+              ? "Please wait..."
+              : isRegister
+                ? "Create account"
+                : "Login"}
           </button>
         </form>
 

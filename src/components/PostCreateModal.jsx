@@ -1,11 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  ImagePlus,
-  Loader2,
-  Send,
-  X,
-} from "lucide-react";
+import { ImagePlus, Loader2, Send, X } from "lucide-react";
 import api from "../../api/axios";
 import { useToast } from "../../hooks";
 
@@ -13,13 +8,12 @@ const PostCreateModal = ({ isOpen, onClose, onSuccess }) => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [categoryId, setCategoryId] = useState("");
-  const [tankId, setTankId] = useState("");
   const [selectedTagIds, setSelectedTagIds] = useState([]);
   const [images, setImages] = useState([]);
   const [previews, setPreviews] = useState([]);
+  const [status, setStatus] = useState("published");
 
   const [categories, setCategories] = useState([]);
-  const [tanks, setTanks] = useState([]);
   const [tags, setTags] = useState([]);
 
   const [loadingData, setLoadingData] = useState(true);
@@ -35,14 +29,12 @@ const PostCreateModal = ({ isOpen, onClose, onSuccess }) => {
     const fetchData = async () => {
       setLoadingData(true);
       try {
-        const [catRes, tankRes, tagRes] = await Promise.all([
+        const [catRes, tagRes] = await Promise.all([
           api.get("/categories"),
-          api.get("/tanks"),
           api.get("/tags"),
         ]);
 
         setCategories(catRes.data.data || catRes.data || []);
-        setTanks(tankRes.data.data || tankRes.data || []);
         setTags(tagRes.data.data || tagRes.data || []);
       } catch {
         addToast("Failed to load form data.", "error");
@@ -59,10 +51,10 @@ const PostCreateModal = ({ isOpen, onClose, onSuccess }) => {
       setTitle("");
       setContent("");
       setCategoryId("");
-      setTankId("");
       setSelectedTagIds([]);
       setImages([]);
       setPreviews([]);
+      setStatus("published");
     }
   }, [isOpen]);
 
@@ -95,12 +87,8 @@ const PostCreateModal = ({ isOpen, onClose, onSuccess }) => {
       const formData = new FormData();
       formData.append("title", title.trim());
       formData.append("content", content.trim());
-      formData.append("status", "published");
+      formData.append("status", status);
       formData.append("category_id", categoryId);
-
-      if (tankId) {
-        formData.append("tank_id", tankId);
-      }
 
       selectedTagIds.forEach((tagId) => {
         formData.append("tag_ids[]", tagId);
@@ -116,7 +104,12 @@ const PostCreateModal = ({ isOpen, onClose, onSuccess }) => {
         },
       });
 
-      addToast("Post published successfully!", "success");
+      addToast(
+        status === "draft"
+          ? "Draft saved successfully!"
+          : "Post published successfully!",
+        "success",
+      );
       onSuccess?.();
       onClose();
       navigate("/");
@@ -133,7 +126,8 @@ const PostCreateModal = ({ isOpen, onClose, onSuccess }) => {
     "h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-800 shadow-sm focus:outline-teal-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100";
   const textareaClass =
     "min-h-40 w-full resize-y rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-800 shadow-sm focus:outline-teal-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100";
-  const labelClass = "grid gap-2 text-sm font-black text-slate-700 dark:text-slate-200";
+  const labelClass =
+    "grid gap-2 text-sm font-black text-slate-700 dark:text-slate-200";
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center p-4">
@@ -141,7 +135,7 @@ const PostCreateModal = ({ isOpen, onClose, onSuccess }) => {
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={onClose}
       />
-      <div className="relative w-[min(680px,100%)] max-h-[90vh] overflow-y-auto rounded-[2rem] border border-white bg-white p-6 shadow-2xl shadow-slate-950/20 ring-1 ring-slate-200/80 dark:border-slate-800 dark:bg-slate-950">
+      <div className="relative w-[min(680px,100%)] max-h-[90vh] overflow-y-auto rounded-4xl border border-white bg-white p-6 shadow-2xl shadow-slate-950/20 ring-1 ring-slate-200/80 dark:border-slate-800 dark:bg-slate-950">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-black text-slate-950 dark:text-white">
             Create a new post
@@ -166,42 +160,48 @@ const PostCreateModal = ({ isOpen, onClose, onSuccess }) => {
             />
           </label>
 
-          <div className="grid grid-cols-2 gap-4 max-sm:grid-cols-1">
-            <label className={labelClass}>
-              Category
-              <select
-                value={categoryId}
-                onChange={(e) => setCategoryId(e.target.value)}
-                className={inputClass}
-                required
-              >
-                <option value="" disabled>
-                  Select a category
+          <label className={labelClass}>
+            Category
+            <select
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+              className={inputClass}
+              required
+            >
+              <option value="" disabled>
+                Select a category
+              </option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
                 </option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
-            </label>
+              ))}
+            </select>
+          </label>
 
-            <label className={labelClass}>
-              Tank
-              <select
-                value={tankId}
-                onChange={(e) => setTankId(e.target.value)}
-                className={inputClass}
-              >
-                <option value="">No tank (optional)</option>
-                {tanks.map((tank) => (
-                  <option key={tank.id} value={tank.id}>
-                    {tank.name} ({tank.volume_gallons} gal)
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
+          <label className={labelClass}>
+            Status
+            <div className="flex flex-wrap gap-2">
+              {[
+                { key: "draft", label: "Save Draft" },
+                { key: "published", label: "Publish" },
+                { key: "archived", label: "Archive" },
+              ].map((action) => (
+                <button
+                  key={action.key}
+                  type="button"
+                  onClick={() => setStatus(action.key)}
+                  className={`inline-flex h-10 min-w-28 items-center justify-center gap-2 rounded-full px-4 text-xs font-black transition ${
+                    status === action.key
+                      ? "bg-teal-700 text-white shadow-lg shadow-teal-900/20"
+                      : "border border-slate-200 bg-white text-slate-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
+                  }`}
+                >
+                  {action.label}
+                </button>
+              ))}
+            </div>
+          </label>
 
           <label className={labelClass}>
             Tags
@@ -249,7 +249,10 @@ const PostCreateModal = ({ isOpen, onClose, onSuccess }) => {
               onClick={() => fileInputRef.current?.click()}
               className="grid min-h-44 cursor-pointer place-items-center gap-2 rounded-2xl border border-dashed border-teal-200 bg-teal-50/60 p-6 text-center dark:border-teal-900 dark:bg-teal-950/40"
             >
-              <ImagePlus size={28} className="text-teal-700 dark:text-teal-300" />
+              <ImagePlus
+                size={28}
+                className="text-teal-700 dark:text-teal-300"
+              />
               <span className="font-black text-teal-900 dark:text-teal-200">
                 Click to upload aquarium photos
               </span>
@@ -265,7 +268,6 @@ const PostCreateModal = ({ isOpen, onClose, onSuccess }) => {
                 className="hidden"
               />
             </div>
-
             {previews.length > 0 && (
               <div className="mt-3 grid grid-cols-4 gap-3">
                 {previews.map((src, idx) => (
@@ -299,7 +301,15 @@ const PostCreateModal = ({ isOpen, onClose, onSuccess }) => {
               ) : (
                 <Send size={18} />
               )}
-              {submitting ? "Publishing..." : "Publish post"}
+              {submitting
+                ? status === "draft"
+                  ? "Saving..."
+                  : "Publishing..."
+                : status === "draft"
+                  ? "Save Draft"
+                  : status === "published"
+                    ? "Publish"
+                    : "Archive"}
             </button>
             <button
               type="button"

@@ -13,7 +13,7 @@ import { useAuth } from "../hooks";
 import { useToast } from "../hooks";
 import ReportModal from "./ReportModal";
 import api from "../api/axios";
-import { getImageUrl } from "../utils/imageUrl";
+import { getAvatarUrl, getImageUrl } from "../utils/imageUrl";
 
 const formatDate = (dateString) => {
   if (!dateString) return "Recently";
@@ -34,14 +34,14 @@ const PostCard = ({ post }) => {
   const { user } = useAuth();
   const { addToast } = useToast();
 
-  const [liked, setLiked] = useState(false);
+  const [liked, setLiked] = useState(post.is_liked || false);
   const [likesCount, setLikesCount] = useState(post.likes?.length || 0);
   const [likeLoading, setLikeLoading] = useState(false);
   const [showReport, setShowReport] = useState(false);
-  const [bookmarked, setBookmarked] = useState(false);
+  const [bookmarked, setBookmarked] = useState(post.is_saved || false);
   const [saveLoading, setSaveLoading] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
-  const [followStatus, setFollowStatus] = useState({ is_following: false, is_friend: false });
+  const [followStatus, setFollowStatus] = useState({ is_following: post.is_following || false, is_friend: false });
 
   const author = post.user;
   const isOwner = author?.id === user?.id;
@@ -58,7 +58,6 @@ const PostCard = ({ post }) => {
 
     setLiked((prev) => !prev);
     setLikesCount((prev) => (liked ? prev - 1 : prev + 1));
-    setBookmarked((prev) => !prev);
     setLikeLoading(true);
 
     try {
@@ -66,7 +65,6 @@ const PostCard = ({ post }) => {
     } catch {
       setLiked(previousLiked);
       setLikesCount(previousCount);
-      setBookmarked(previousLiked);
       addToast("Failed to update like.", "error");
     } finally {
       setLikeLoading(false);
@@ -139,8 +137,12 @@ const PostCard = ({ post }) => {
             >
               <img
                 className="h-10 w-10 shrink-0 rounded-full object-cover"
-                src={getImageUrl(author?.avatar) || "https://via.placeholder.com/40"}
-                alt=""
+                src={getAvatarUrl(author?.avatar)}
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = "/default-avatar.png";
+                }}
+                alt={author?.name || "User Avatar"}
               />
               <span className="min-w-0">
                 <span className="block truncate text-sm font-bold text-slate-950 dark:text-white">
@@ -172,7 +174,7 @@ const PostCard = ({ post }) => {
                   {followLoading ? (
                     <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
                   ) : followStatus.is_following ? (
-                    "Unfollow"
+                    "Following"
                   ) : (
                     <>
                       <UserPlus size={14} />

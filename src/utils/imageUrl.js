@@ -8,3 +8,19 @@ export const getImageUrl = (path) => {
   const cleanPath = path.replace(/^\/+/, "");
   return `${baseURL}/${cleanPath}`;
 };
+
+export const getAvatarUrl = (avatar) => {
+  if (!avatar) return "/default-avatar.png";
+
+  if (avatar.startsWith("http://") || avatar.startsWith("https://")) {
+    return avatar;
+  }
+
+  const cleanPath = avatar.replace(/^\/?(storage\/)?/, "");
+
+  const backendOrigin = import.meta.env.VITE_API_BASE_URL
+    ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, "")
+    : "http://127.0.0.1:8000";
+
+  return `${backendOrigin}/storage/${cleanPath}`;
+};

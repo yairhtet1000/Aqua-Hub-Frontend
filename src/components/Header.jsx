@@ -144,7 +144,7 @@ const AquaHubHeader = ({ currentUser, theme, onToggleTheme }) => {
 
           <Link
             className={`${iconButtonClass} max-lg:hidden`}
-            to="/settings"
+            to="/settings/edit-profile"
             title="Settings"
           >
             <Settings size={18} />

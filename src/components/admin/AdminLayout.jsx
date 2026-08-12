@@ -4,12 +4,15 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  Moon,
   ShieldCheck,
+  Sun,
   Users,
   X,
 } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "../../hooks";
+import NotificationDropdown from "../../components/NotificationDropdown";
 
 const navItems = [
   { to: "/admin", end: true, icon: LayoutDashboard, label: "Overview" },
@@ -26,7 +29,7 @@ const linkClass = ({ isActive }) =>
       : "text-slate-600 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white",
   ].join(" ");
 
-const AdminLayout = () => {
+const AdminLayout = ({ theme, onToggleTheme }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -37,7 +40,8 @@ const AdminLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+    <div className={theme === "dark" ? "dark" : ""}>
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
@@ -55,7 +59,7 @@ const AdminLayout = () => {
         <div className="flex h-full flex-col">
           <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5 dark:border-slate-800">
             <div className="flex items-center gap-3">
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-teal-700 to-cyan-500 text-sm font-black text-white">
+              <span className="grid h-10 w-10 place-items-center rounded-xl bg-linear-to-br from-teal-700 to-cyan-500 text-sm font-black text-white">
                 Aq
               </span>
               <div>
@@ -67,10 +71,7 @@ const AdminLayout = () => {
                 </p>
               </div>
             </div>
-            <button
-              className="lg:hidden"
-              onClick={() => setSidebarOpen(false)}
-            >
+            <button className="lg:hidden" onClick={() => setSidebarOpen(false)}>
               <X size={20} />
             </button>
           </div>
@@ -127,17 +128,25 @@ const AdminLayout = () => {
       <div className="lg:ml-72">
         <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/80 backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
           <div className="flex items-center justify-between px-6 py-4">
-            <button
-              className="lg:hidden"
-              onClick={() => setSidebarOpen(true)}
-            >
+            <button className="lg:hidden" onClick={() => setSidebarOpen(true)}>
               <Menu size={22} />
             </button>
             <h1 className="text-lg font-black text-slate-950 dark:text-white lg:text-xl">
               Admin Dashboard
             </h1>
             <div className="flex items-center gap-2 text-sm font-semibold text-slate-500 dark:text-slate-400">
-              <ShieldCheck size={16} />
+              <NotificationDropdown />
+              <button
+                onClick={onToggleTheme}
+                className="grid h-9 w-9 place-items-center rounded-md border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 hover:text-slate-950 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white"
+                title={
+                  theme === "dark"
+                    ? "Switch to light mode"
+                    : "Switch to dark mode"
+                }
+              >
+                {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+              </button>
               <span className="hidden sm:inline">
                 {user?.role?.name || "Administrator"}
               </span>
@@ -149,6 +158,7 @@ const AdminLayout = () => {
           <Outlet />
         </main>
       </div>
+    </div>
     </div>
   );
 };

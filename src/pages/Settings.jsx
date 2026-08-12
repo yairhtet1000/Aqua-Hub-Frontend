@@ -6,9 +6,10 @@ import api from "../api/axios";
 
 const fieldClass =
   "h-12 rounded-2xl border border-slate-200 bg-white px-4 text-slate-800 shadow-sm focus:outline-teal-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100";
-const labelClass = "grid gap-2 text-sm font-black text-slate-700 dark:text-slate-200";
+const labelClass =
+  "grid gap-2 text-sm font-black text-slate-700 dark:text-slate-200";
 
-const Settings = ({ section = "profile", onLogout }) => {
+const Settings = ({ section = "profile", onLogout, basePath = "" }) => {
   const { user, updateUser } = useAuth();
   const { addToast } = useToast();
   const passwordSection = section === "password";
@@ -111,7 +112,7 @@ const Settings = ({ section = "profile", onLogout }) => {
                 ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950"
                 : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900"
             }`}
-            to="/settings/profile"
+            to={`${basePath}/edit-profile`}
           >
             Edit profile
           </Link>
@@ -121,14 +122,16 @@ const Settings = ({ section = "profile", onLogout }) => {
                 ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950"
                 : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900"
             }`}
-            to="/settings/password"
+            to={`${basePath}/edit-password`}
           >
             Change password
           </Link>
         </div>
 
         <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
-          <h2 className="text-sm font-bold text-slate-950 dark:text-white">Account</h2>
+          <h2 className="text-sm font-bold text-slate-950 dark:text-white">
+            Account
+          </h2>
           <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">
             Sign out from this browser when you are done managing your account.
           </p>
@@ -144,7 +147,7 @@ const Settings = ({ section = "profile", onLogout }) => {
       </aside>
 
       <section className="grid gap-5">
-        <div className="rounded-[2rem] bg-slate-950 p-7 text-white shadow-2xl shadow-teal-950/20 dark:bg-slate-900">
+        <div className="rounded-4xl bg-slate-950 p-7 text-white shadow-2xl shadow-teal-950/20 dark:bg-slate-900">
           <span className="mb-3 block text-sm font-black uppercase tracking-[0.16em] text-cyan-200">
             Account settings
           </span>
@@ -154,7 +157,10 @@ const Settings = ({ section = "profile", onLogout }) => {
         </div>
 
         {passwordSection ? (
-          <form className="grid gap-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-950/5 dark:border-slate-800 dark:bg-slate-950" onSubmit={handlePasswordSubmit}>
+          <form
+            className="grid gap-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-950/5 dark:border-slate-800 dark:bg-slate-950"
+            onSubmit={handlePasswordSubmit}
+          >
             <label className={labelClass}>
               Current password
               <input
@@ -197,7 +203,10 @@ const Settings = ({ section = "profile", onLogout }) => {
             </button>
           </form>
         ) : (
-          <form className="grid gap-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-950/5 dark:border-slate-800 dark:bg-slate-950" onSubmit={handleSubmit}>
+          <form
+            className="grid gap-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-950/5 dark:border-slate-800 dark:bg-slate-950"
+            onSubmit={handleSubmit}
+          >
             <div className="flex flex-wrap items-center gap-4 rounded-3xl bg-slate-50 p-4 dark:bg-slate-900">
               <img
                 className="h-24 w-24 rounded-full object-cover"

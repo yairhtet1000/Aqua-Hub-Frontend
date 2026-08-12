@@ -19,6 +19,7 @@ import HomeFeed from "./pages/HomeFeed";
 import PostDetail from "./pages/PostDetail";
 import PostForm from "./pages/PostForm";
 import Settings from "./pages/Settings";
+import EditPassword from "./pages/EditPassword";
 import UserProfile from "./pages/UserProfile";
 import UserProfileEdit from "./pages/UserProfileEdit";
 import AdminUserEdit from "./pages/admin/AdminUserEdit";
@@ -73,11 +74,18 @@ const AppRoutes = () => {
           />
           <Route
             path="/register"
-            element={user ? <Navigate to="/" replace /> : <AuthPage />}
+            element={user ? <Navigate to="/" replace /> : <AuthPage mode="register" />}
           />
           <Route path="/admin/*" element={
               <AdminRoute>
-                <AdminLayout />
+                <AdminLayout
+                  theme={theme}
+                  onToggleTheme={() =>
+                    setTheme((current) =>
+                      current === "dark" ? "light" : "dark",
+                    )
+                  }
+                />
               </AdminRoute>
             }
           >
@@ -87,8 +95,8 @@ const AppRoutes = () => {
             <Route path="users/:id/edit" element={<AdminUserEdit />} />
             <Route path="categories" element={<CategoryManager />} />
             <Route path="profile" element={<UserProfile own />} />
-            <Route path="settings" element={<Settings section="profile" onLogout={logout} />} />
-            <Route path="settings/password" element={<Settings section="password" onLogout={logout} />} />
+            <Route path="profile/edit-profile" element={<Settings section="profile" onLogout={logout} basePath="/admin/profile" />} />
+            <Route path="profile/edit-password" element={<EditPassword />} />
           </Route>
           <Route
             element={
@@ -115,18 +123,19 @@ const AppRoutes = () => {
             <Route path="/users/:id" element={<UserProfile />} />
             <Route
               path="/settings"
-              element={<Navigate to="/settings/profile" replace />}
+              element={<Navigate to="/settings/edit-profile" replace />}
             />
             <Route
-              path="/settings/profile"
+              path="/settings/edit-profile"
               element={<UserProfileEdit onLogout={logout} />}
             />
             <Route
-              path="/settings/password"
-              element={<Settings section="password" onLogout={logout} />}
+              path="/settings/edit-password"
+              element={<EditPassword />}
             />
             <Route path="/bookmarks" element={<Bookmarks />} />
             <Route path="/following" element={<Following />} />
+            <Route path="/profile/network" element={<Navigate to="/following" replace />} />
           </Route>
           <Route
             path="*"

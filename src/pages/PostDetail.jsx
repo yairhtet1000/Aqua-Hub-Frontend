@@ -62,9 +62,9 @@ const PostDetail = () => {
         const response = await api.get(`/posts/${id}`);
         const postData = response.data;
         setPost(postData);
-        setLiked(postData.likes?.some((like) => like.id === user?.id) || false);
+        setLiked(postData.is_liked || false);
         setLikesCount(postData.likes?.length || 0);
-        setBookmarked(false);
+        setBookmarked(postData.is_saved || false);
       } catch {
         setError("Failed to load post.");
       } finally {
@@ -73,7 +73,7 @@ const PostDetail = () => {
     };
 
     fetchPost();
-  }, [id, user]);
+  }, [id]);
 
   const fetchComments = useCallback(async () => {
     if (!id) return;
@@ -193,11 +193,17 @@ const PostDetail = () => {
           alt=""
         />
         <div className="min-w-0">
-          <strong className="text-slate-950 dark:text-white">{author?.name || "Unknown User"}</strong>
-          <p className="mt-1 leading-7 text-slate-600 dark:text-slate-300">{comment.content}</p>
+          <strong className="text-slate-950 dark:text-white">
+            {author?.name || "Unknown User"}
+          </strong>
+          <p className="mt-1 leading-7 text-slate-600 dark:text-slate-300">
+            {comment.content}
+          </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <button
-              onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+              onClick={() =>
+                setReplyingTo(replyingTo === comment.id ? null : comment.id)
+              }
               className="inline-flex h-9 min-w-24 items-center justify-center gap-2 rounded-full bg-slate-100 px-3 text-sm font-black text-slate-600 dark:bg-slate-900 dark:text-slate-300"
             >
               <Reply size={15} />
@@ -226,7 +232,10 @@ const PostDetail = () => {
           </div>
 
           {replyingTo === comment.id && (
-            <form onSubmit={(e) => handleSubmitReply(e, comment.id)} className="mt-3 grid gap-2">
+            <form
+              onSubmit={(e) => handleSubmitReply(e, comment.id)}
+              className="mt-3 grid gap-2"
+            >
               <textarea
                 className="min-h-24 resize-y rounded-2xl border border-slate-200 bg-white p-3 text-sm text-slate-700 placeholder:text-slate-400 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
                 placeholder="Write a reply..."
@@ -279,7 +288,9 @@ const PostDetail = () => {
           <strong className="text-sm text-slate-950 dark:text-white">
             {replyAuthor?.name || "Unknown User"}
           </strong>
-          <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">{reply.content}</p>
+          <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">
+            {reply.content}
+          </p>
         </div>
       </div>
     );
@@ -307,7 +318,7 @@ const PostDetail = () => {
 
   return (
     <article className="mx-auto grid w-[min(960px,100%)] gap-5">
-      <div className="overflow-hidden rounded-[2rem] bg-white shadow-2xl shadow-slate-950/10 ring-1 ring-slate-200 dark:bg-slate-950 dark:ring-slate-800">
+      <div className="overflow-hidden rounded-4xl bg-white shadow-2xl shadow-slate-950/10 ring-1 ring-slate-200 dark:bg-slate-950 dark:ring-slate-800">
         {images.length > 0 && (
           <div className="relative h-[min(430px,52vw)] min-h-72 overflow-hidden">
             <img
@@ -315,7 +326,7 @@ const PostDetail = () => {
               src={getImageUrl(images[0].image_path)}
               alt=""
             />
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/90 to-transparent p-7 text-white">
+            <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-slate-950/90 to-transparent p-7 text-white">
               <div className="mb-3 flex flex-wrap items-center gap-3 text-sm">
                 <Link
                   to={`/users/${author?.id}`}
@@ -365,7 +376,9 @@ const PostDetail = () => {
       </div>
 
       <div className="grid gap-5 rounded-3xl border border-slate-200 bg-white p-5 shadow-xl shadow-slate-950/5 dark:border-slate-800 dark:bg-slate-950 sm:p-7">
-        <p className="text-lg leading-8 text-slate-700 dark:text-slate-300">{post.content}</p>
+        <p className="text-lg leading-8 text-slate-700 dark:text-slate-300">
+          {post.content}
+        </p>
 
         <div className="flex flex-wrap gap-2">
           {post.tags?.map((tag) => (
@@ -425,7 +438,9 @@ const PostDetail = () => {
               <p className="text-sm font-black uppercase tracking-[0.16em] text-teal-700">
                 Discussion
               </p>
-              <h2 className="text-2xl font-black text-slate-950 dark:text-white">Comments</h2>
+              <h2 className="text-2xl font-black text-slate-950 dark:text-white">
+                Comments
+              </h2>
             </div>
             <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-black text-slate-600 dark:bg-slate-900 dark:text-slate-300">
               {comments.length}
@@ -438,7 +453,10 @@ const PostDetail = () => {
               This discussion is locked.
             </div>
           ) : (
-            <form onSubmit={handleSubmitComment} className="grid gap-3 rounded-3xl bg-slate-50 p-4 dark:bg-slate-900">
+            <form
+              onSubmit={handleSubmitComment}
+              className="grid gap-3 rounded-3xl bg-slate-50 p-4 dark:bg-slate-900"
+            >
               <textarea
                 className="min-h-28 resize-y rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700 placeholder:text-slate-400 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
                 placeholder="Add helpful context, ask for water parameters, or share what worked for your tank"

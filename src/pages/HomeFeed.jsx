@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import PostCard from "../components/PostCard";
 import api from "../api/axios";
-import { getImageUrl } from "../utils/imageUrl";
+import { getAvatarUrl } from "../utils/imageUrl";
 
 const HomeFeed = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -49,18 +49,23 @@ const HomeFeed = () => {
   useEffect(() => {
     const fetchSidebarData = async () => {
       setSidebarLoading(true);
-      try {
-        const [userRes, contributorsRes] = await Promise.all([
-          api.get("/user"),
-          api.get("/users/top-contributors"),
-        ]);
-        setCurrentUser(userRes.data.user || userRes.data);
-        setTopContributors(contributorsRes.data || []);
-      } catch {
-        // sidebar data is non-critical
-      } finally {
-        setSidebarLoading(false);
+
+      const [userResult, contributorsResult] = await Promise.allSettled([
+        api.get("/user"),
+        api.get("/users/top-contributors"),
+      ]);
+
+      if (userResult.status === "fulfilled") {
+        const userData = userResult.value.data;
+        setCurrentUser(userData.user || userData.data || userData);
       }
+
+      if (contributorsResult.status === "fulfilled") {
+        const contribData = contributorsResult.value.data;
+        setTopContributors(contribData.data || contribData || []);
+      }
+
+      setSidebarLoading(false);
     };
 
     fetchSidebarData();
@@ -89,7 +94,19 @@ const HomeFeed = () => {
             </h2>
           </div>
           <div className="grid gap-1 max-lg:grid-cols-2 max-sm:grid-cols-1">
-            {["All", "Freshwater", "Saltwater", "Aquascaping", "Planted Tank", "Fish Disease", "Equipment", "DIY", "Shrimp", "Breeding", "Beginner Help"].map((category) => (
+            {[
+              "All",
+              "Freshwater",
+              "Saltwater",
+              "Aquascaping",
+              "Planted Tank",
+              "Fish Disease",
+              "Equipment",
+              "DIY",
+              "Shrimp",
+              "Breeding",
+              "Beginner Help",
+            ].map((category) => (
               <button
                 key={category}
                 className={[
@@ -136,13 +153,17 @@ const HomeFeed = () => {
         </div>
       </aside>
 
-      <section className="mx-auto grid w-full max-w-[720px] content-start gap-4 px-5 pt-4 max-lg:px-0">
+      <section className="mx-auto grid w-full max-w-180 content-start gap-4 px-5 pt-4 max-lg:px-0">
         <div className="rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-950">
           <div className="grid grid-cols-[40px_1fr_auto] items-center gap-3 max-sm:grid-cols-[40px_1fr]">
             <img
               className="h-10 w-10 rounded-full object-cover"
-              src={getImageUrl(currentUser?.avatar) || "https://via.placeholder.com/40"}
-              alt=""
+              src={getAvatarUrl(currentUser?.avatar)}
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = "/default-avatar.png";
+              }}
+              alt={currentUser?.name || "User Avatar"}
             />
             <Link
               className="flex h-11 items-center rounded-lg bg-slate-100 px-4 text-left text-sm font-medium text-slate-500 transition hover:bg-slate-200 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800"
@@ -199,26 +220,46 @@ const HomeFeed = () => {
             <div className="flex items-center gap-3">
               <img
                 className="h-12 w-12 rounded-full object-cover"
-                src={getImageUrl(currentUser.avatar) || "https://via.placeholder.com/48"}
-                alt=""
+                src={getAvatarUrl(currentUser.avatar)}
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = "/default-avatar.png";
+                }}
+                alt={currentUser?.name || "User Avatar"}
               />
               <div>
-                <h2 className="font-bold text-slate-950 dark:text-white">{currentUser.name}</h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400">@{currentUser.name?.replace(/\s/g, "_").toLowerCase()}</p>
+                <h2 className="font-bold text-slate-950 dark:text-white">
+                  {currentUser.name}
+                </h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  @{currentUser.name?.replace(/\s/g, "_").toLowerCase()}
+                </p>
               </div>
             </div>
             <div className="mt-4 grid grid-cols-3 gap-2 text-center">
               <div className="rounded-lg bg-slate-100 p-2 dark:bg-slate-900">
-                <strong className="block text-sm font-bold text-slate-950 dark:text-white">{userPostsCount}</strong>
-                <span className="text-xs text-slate-500 dark:text-slate-400">Posts</span>
+                <strong className="block text-sm font-bold text-slate-950 dark:text-white">
+                  {userPostsCount}
+                </strong>
+                <span className="text-xs text-slate-500 dark:text-slate-400">
+                  Posts
+                </span>
               </div>
               <div className="rounded-lg bg-slate-100 p-2 dark:bg-slate-900">
-                <strong className="block text-sm font-bold text-slate-950 dark:text-white">{userFollowersCount}</strong>
-                <span className="text-xs text-slate-500 dark:text-slate-400">Followers</span>
+                <strong className="block text-sm font-bold text-slate-950 dark:text-white">
+                  {userFollowersCount}
+                </strong>
+                <span className="text-xs text-slate-500 dark:text-slate-400">
+                  Followers
+                </span>
               </div>
               <div className="rounded-lg bg-slate-100 p-2 dark:bg-slate-900">
-                <strong className="block text-sm font-bold text-slate-950 dark:text-white">{userFollowingCount}</strong>
-                <span className="text-xs text-slate-500 dark:text-slate-400">Following</span>
+                <strong className="block text-sm font-bold text-slate-950 dark:text-white">
+                  {userFollowingCount}
+                </strong>
+                <span className="text-xs text-slate-500 dark:text-slate-400">
+                  Following
+                </span>
               </div>
             </div>
           </div>
@@ -233,17 +274,22 @@ const HomeFeed = () => {
         <div className="border-t border-slate-200 pt-5 dark:border-slate-800">
           <div className="mb-3 flex items-center gap-2">
             <ShieldCheck size={18} className="text-teal-700" />
-            <h2 className="font-bold text-slate-950 dark:text-white">About AquaHub</h2>
+            <h2 className="font-bold text-slate-950 dark:text-white">
+              About AquaHub
+            </h2>
           </div>
           <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">
-            A focused aquarium forum for beginner help, tank journals, disease questions, equipment advice, and breeding logs.
+            A focused aquarium forum for beginner help, tank journals, disease
+            questions, equipment advice, and breeding logs.
           </p>
         </div>
 
         <div className="border-t border-slate-200 pt-5 dark:border-slate-800">
           <div className="mb-3 flex items-center gap-2">
             <Award size={18} className="text-amber-500" />
-            <h2 className="font-bold text-slate-950 dark:text-white">Top contributors</h2>
+            <h2 className="font-bold text-slate-950 dark:text-white">
+              Top contributors
+            </h2>
           </div>
           {sidebarLoading ? (
             <div className="flex items-center justify-center py-4">
@@ -253,23 +299,34 @@ const HomeFeed = () => {
             <p className="text-sm text-slate-500">No contributors yet.</p>
           ) : (
             <div className="grid gap-3 text-sm">
-              {topContributors.map((contributor, index) => (
-                <div className="flex items-center justify-between" key={contributor.id}>
-                  <div className="flex items-center gap-2">
-                    <img
-                      className="h-7 w-7 rounded-full object-cover"
-                      src={getImageUrl(contributor.avatar) || "https://via.placeholder.com/28"}
-                      alt=""
-                    />
-                    <span className="font-medium text-slate-700 dark:text-slate-300">
-                      {contributor.name}
+              {topContributors.map((contributor) => {
+                const activityScore = (contributor.posts_count ?? 0) + (contributor.comments_count ?? 0);
+
+                return (
+                  <div
+                    className="flex items-center justify-between"
+                    key={contributor.id}
+                  >
+                    <div className="flex items-center gap-2">
+                      <img
+                        className="h-7 w-7 rounded-full object-cover"
+                        src={getAvatarUrl(contributor.avatar)}
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = "/default-avatar.png";
+                        }}
+                        alt={contributor.name || "Contributor Avatar"}
+                      />
+                      <span className="font-medium text-slate-700 dark:text-slate-300">
+                        {contributor.name}
+                      </span>
+                    </div>
+                    <span className="rounded-md bg-slate-100 px-2 py-1 text-xs font-bold text-slate-600 dark:bg-slate-900 dark:text-slate-300">
+                      {activityScore} pts
                     </span>
                   </div>
-                  <span className="rounded-md bg-slate-100 px-2 py-1 text-xs font-bold text-slate-600 dark:bg-slate-900 dark:text-slate-300">
-                    #{index + 1}
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

@@ -6,7 +6,7 @@ const items = [
   { to: "/bookmarks", label: "Saved", icon: Bookmark },
   { to: "/following", label: "Following", icon: Users },
   { to: "/profile", label: "Profile", icon: UserRound },
-  { to: "/settings", label: "Settings", icon: Settings },
+  { to: "/settings/edit-profile", label: "Settings", icon: Settings },
 ];
 
 const BottomNav = () => {

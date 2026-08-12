@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useLocation } from "react-router-dom";
 import { Calendar, Fish, MapPin, PenSquare, UserPlus } from "lucide-react";
 import PostCard from "../components/PostCard";
 import { useAuth, useToast } from "../hooks";
 import api from "../api/axios";
 import { getImageUrl } from "../utils/imageUrl";
-import FollowModal from "../components/FollowModal";
 
 const UserProfile = ({ own = false }) => {
   const { id } = useParams();
+  const location = useLocation();
   const { user: authUser } = useAuth();
   const [profile, setProfile] = useState(null);
   const [userPosts, setUserPosts] = useState([]);
@@ -19,9 +19,10 @@ const UserProfile = ({ own = false }) => {
   const [followStatus, setFollowStatus] = useState({ is_following: false, is_friend: false });
   const [followersCount, setFollowersCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
-  const [showFollowersModal, setShowFollowersModal] = useState(false);
-  const [showFollowingModal, setShowFollowingModal] = useState(false);
   const { addToast } = useToast();
+
+  const isAdmin = location.pathname.startsWith("/admin");
+  const editProfilePath = isAdmin ? "/admin/profile/edit-profile" : "/settings/edit-profile";
 
   useEffect(() => {
     const fetchData = async () => {
@@ -152,7 +153,7 @@ const UserProfile = ({ own = false }) => {
           {isOwner ? (
             <Link
               className="inline-flex h-12 min-w-36 items-center justify-center gap-2 rounded-full bg-teal-700 px-5 text-sm font-black text-white shadow-lg shadow-teal-900/20"
-              to="/settings/profile"
+              to={editProfilePath}
             >
               <PenSquare size={18} />
               Edit profile
@@ -170,7 +171,7 @@ const UserProfile = ({ own = false }) => {
               {followLoading ? (
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
               ) : followStatus.is_following ? (
-                "Unfollow"
+                "Following"
               ) : (
                 <>
                   <UserPlus size={18} />
@@ -188,23 +189,23 @@ const UserProfile = ({ own = false }) => {
           ["Comments", profile.comments_count ?? 0],
           [
             "Followers",
-            <button
+            <Link
               key="followers"
-              onClick={() => setShowFollowersModal(true)}
+              to="/following"
               className="hover:text-teal-700 dark:hover:text-teal-300"
             >
               {followersCount}
-            </button>,
+            </Link>,
           ],
           [
             "Following",
-            <button
+            <Link
               key="following"
-              onClick={() => setShowFollowingModal(true)}
+              to="/following"
               className="hover:text-teal-700 dark:hover:text-teal-300"
             >
               {followingCount}
-            </button>,
+            </Link>,
           ],
         ].map(([label, value]) => (
           <div
@@ -243,21 +244,6 @@ const UserProfile = ({ own = false }) => {
           ))
         )}
       </section>
-
-      <FollowModal
-        isOpen={showFollowersModal}
-        onClose={() => setShowFollowersModal(false)}
-        type="followers"
-        userId={profile.id}
-        title="Followers"
-      />
-      <FollowModal
-        isOpen={showFollowingModal}
-        onClose={() => setShowFollowingModal(false)}
-        type="following"
-        userId={profile.id}
-        title="Following"
-      />
     </div>
   );
 };
