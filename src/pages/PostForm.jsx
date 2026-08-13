@@ -34,7 +34,7 @@ const PostForm = () => {
     const fetchOptions = async () => {
       try {
         const { data } = await api.get("/categories");
-        const catData = Array.isArray(data) ? data : (data?.data || []);
+        const catData = Array.isArray(data) ? data : data?.data || [];
         setCategories(catData);
       } catch {
         addToast("Failed to load categories.", "error");
@@ -136,7 +136,10 @@ const PostForm = () => {
         navigate(`/posts/${response.data.id}`);
       }
     } catch {
-      addToast(isEdit ? "Failed to update post." : "Failed to create post.", "error");
+      addToast(
+        isEdit ? "Failed to update post." : "Failed to create post.",
+        "error",
+      );
     } finally {
       setSaving(false);
     }
@@ -153,16 +156,17 @@ const PostForm = () => {
   }
 
   return (
-    <div className="mx-auto grid w-full max-w-[940px] gap-5 px-4 sm:px-6 lg:px-8">
+    <div className="mx-auto grid w-full max-w-235 gap-5 px-4 sm:px-6 lg:px-8">
       <div className="border-b border-slate-200 pb-4 dark:border-slate-800">
         <span className="text-xs font-bold uppercase tracking-[0.12em] text-teal-700 dark:text-teal-300">
           {isEdit ? "Update discussion" : "New community discussion"}
         </span>
-        <h1 className="mt-1 break-words font-display text-2xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-3xl">
+        <h1 className="mt-1 wrap-break-word font-display text-2xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-3xl">
           {isEdit ? "Edit post" : "Create a forum post"}
         </h1>
-        <p className="mt-2 max-w-2xl break-words text-sm leading-6 text-slate-500 dark:text-slate-400">
-          Add useful context, choose the right category, and attach photos so experienced keepers can help quickly.
+        <p className="mt-2 max-w-2xl wrap-break-word text-sm leading-6 text-slate-500 dark:text-slate-400">
+          Add useful context, choose the right category, and attach photos so
+          experienced keepers can help quickly.
         </p>
       </div>
 

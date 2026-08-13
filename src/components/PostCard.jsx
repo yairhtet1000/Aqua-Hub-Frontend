@@ -1,5 +1,14 @@
 import { useState } from "react";
-import { Bookmark, Flag, Heart, MessageCircle, Pencil, Share2, Trash2, UserPlus } from "lucide-react";
+import {
+  Bookmark,
+  Flag,
+  Heart,
+  MessageCircle,
+  Pencil,
+  Share2,
+  Trash2,
+  UserPlus,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import api from "../api/axios";
 import { useAuth, useToast } from "../hooks";
@@ -13,13 +22,15 @@ const formatDate = (dateString) => {
   const date = new Date(dateString);
   return Number.isNaN(date.getTime())
     ? "Recently"
-    : new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(date);
+    : new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(
+        date,
+      );
 };
 
 const actionClass =
   "inline-flex min-h-11 min-w-20 items-center justify-center gap-2 rounded-xl px-3 text-sm font-bold transition-all duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60";
 
-const PostCard = ({ post }) => {
+const PostCard = ({ post, onPostDeleted }) => {
   const { user } = useAuth();
   const { addToast } = useToast();
   const [liked, setLiked] = useState(post.is_liked || false);
@@ -33,6 +44,7 @@ const PostCard = ({ post }) => {
     is_following: post.is_following || false,
     is_friend: false,
   });
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const author = post.user;
   const isOwner = author?.id === user?.id;
@@ -80,9 +92,13 @@ const PostCard = ({ post }) => {
       const endpoint = optimisticFollowing
         ? `/users/${author.id}/follow`
         : `/users/${author.id}/unfollow`;
-      const response = await api[optimisticFollowing ? "post" : "delete"](endpoint);
+      const response =
+        await api[optimisticFollowing ? "post" : "delete"](endpoint);
       const data = response.data;
-      setFollowStatus({ is_following: data.is_following, is_friend: data.is_friend });
+      setFollowStatus({
+        is_following: data.is_following,
+        is_friend: data.is_friend,
+      });
       addToast(data.message, "success");
     } catch {
       setFollowStatus(previousStatus);
@@ -99,11 +115,10 @@ const PostCard = ({ post }) => {
     setSaveLoading(true);
 
     try {
-      if (!previousSaved) {
-        await api.post(`/posts/${post.id}/save`);
-      } else {
-        await api.delete(`/posts/${post.id}/save`);
-      }
+      const response = await api.post(`/posts/${post.id}/bookmark`);
+      const data = response.data;
+      setBookmarked(data.bookmarked);
+      addToast(data.message, "success");
     } catch {
       setBookmarked(previousSaved);
       addToast("Failed to update bookmark.", "error");
@@ -116,7 +131,11 @@ const PostCard = ({ post }) => {
     const shareUrl = `${window.location.origin}/posts/${post.id}`;
     try {
       if (navigator.share) {
-        await navigator.share({ title: post.title, text: post.content, url: shareUrl });
+        await navigator.share({
+          title: post.title,
+          text: post.content,
+          url: shareUrl,
+        });
         return;
       }
 
@@ -127,7 +146,25 @@ const PostCard = ({ post }) => {
         addToast("Copying links is not available in this browser.", "error");
       }
     } catch (error) {
-      if (error?.name !== "AbortError") addToast("Failed to share this post.", "error");
+      if (error?.name !== "AbortError")
+        addToast("Failed to share this post.", "error");
+    }
+  };
+
+  const handleDelete = async () => {
+    if (deleteLoading) return;
+    setDeleteLoading(true);
+
+    try {
+      await api.delete(`/posts/${post.id}`);
+      if (onPostDeleted) {
+        onPostDeleted(post.id);
+      }
+      addToast("Post deleted successfully.", "success");
+    } catch {
+      addToast("Failed to delete post.", "error");
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -140,7 +177,10 @@ const PostCard = ({ post }) => {
               to={`/users/${author?.id}`}
               className="flex min-w-0 items-center gap-3 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2"
             >
-              <Avatar src={author?.avatar} alt={`${author?.name || "User"}, post author`} />
+              <Avatar
+                src={author?.avatar}
+                alt={`${author?.name || "User"}, post author`}
+              />
               <span className="min-w-0">
                 <span className="block truncate text-sm font-bold text-slate-950 dark:text-white">
                   {author?.name || "Unknown User"}
@@ -187,11 +227,11 @@ const PostCard = ({ post }) => {
 
           <Link
             to={`/posts/${post.id}`}
-            className="mt-4 block break-words font-display text-xl font-bold leading-tight text-slate-950 transition-colors duration-200 hover:text-teal-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:text-white dark:hover:text-teal-300"
+            className="mt-4 block wrap-break-word font-display text-xl font-bold leading-tight text-slate-950 transition-colors duration-200 hover:text-teal-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:text-white dark:hover:text-teal-300"
           >
             {post.title}
           </Link>
-          <p className="mt-2 break-words text-sm leading-6 text-slate-600 dark:text-slate-300 line-clamp-3">
+          <p className="mt-2 wrap-break-word text-sm leading-6 text-slate-600 dark:text-slate-300 line-clamp-3">
             {post.content}
           </p>
 
@@ -221,7 +261,7 @@ const PostCard = ({ post }) => {
                 key={image.id || image.image_path || index}
                 to={`/posts/${post.id}`}
                 className={`relative block min-w-0 overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-600 ${
-                  images.length === 1 ? "max-h-[420px]" : "aspect-square"
+                  images.length === 1 ? "max-h-105" : "aspect-square"
                 }`}
               >
                 <SafeImage
@@ -231,7 +271,9 @@ const PostCard = ({ post }) => {
                 />
                 {images.length > 4 && index === 3 && (
                   <span className="absolute inset-0 grid place-items-center bg-slate-950/50 text-white">
-                    <span className="text-lg font-black">+{images.length - 4}</span>
+                    <span className="text-lg font-black">
+                      +{images.length - 4}
+                    </span>
                   </span>
                 )}
               </Link>
@@ -247,7 +289,11 @@ const PostCard = ({ post }) => {
             aria-pressed={liked}
             className={`${actionClass} ${liked ? "text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/40" : "text-slate-600 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white"}`}
           >
-            <Heart size={16} fill={liked ? "currentColor" : "none"} aria-hidden="true" />
+            <Heart
+              size={16}
+              fill={liked ? "currentColor" : "none"}
+              aria-hidden="true"
+            />
             {likesCount}
           </button>
 
@@ -266,7 +312,11 @@ const PostCard = ({ post }) => {
             aria-pressed={bookmarked}
             className={`${actionClass} ${bookmarked ? "bg-teal-50 text-teal-800 hover:bg-teal-100 dark:bg-teal-950/60 dark:text-teal-200 dark:hover:bg-teal-900" : "text-slate-600 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white"}`}
           >
-            <Bookmark size={16} fill={bookmarked ? "currentColor" : "none"} aria-hidden="true" />
+            <Bookmark
+              size={16}
+              fill={bookmarked ? "currentColor" : "none"}
+              aria-hidden="true"
+            />
             {bookmarked ? "Saved" : "Save"}
           </button>
 
@@ -303,11 +353,17 @@ const PostCard = ({ post }) => {
               </Link>
               <button
                 type="button"
-                className={`${actionClass} min-w-11 text-slate-500 hover:bg-rose-50 hover:text-rose-700 dark:text-slate-400 dark:hover:bg-rose-950/40 dark:hover:text-rose-300`}
+                onClick={handleDelete}
+                disabled={deleteLoading}
+                className={`${actionClass} min-w-11 text-slate-500 hover:bg-rose-50 hover:text-rose-700 dark:text-slate-400 dark:hover:bg-rose-950/40 dark:hover:text-rose-300 disabled:cursor-not-allowed disabled:opacity-60`}
                 aria-label="Delete post"
                 title="Delete post"
               >
-                <Trash2 size={16} aria-hidden="true" />
+                {deleteLoading ? (
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                ) : (
+                  <Trash2 size={16} aria-hidden="true" />
+                )}
                 <span className="hidden md:inline">Delete</span>
               </button>
             </>

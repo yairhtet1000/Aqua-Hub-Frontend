@@ -18,11 +18,7 @@ import Avatar from "../components/Avatar";
 import { FeedEmptyState, FeedSkeleton } from "../components/FeedStates";
 import { categories } from "../data/mockData";
 
-const topicItems = [
-  "All",
-  ...categories.filter((category) => !["DIY", "Breeding"].includes(category)).slice(0, 6),
-  "DIY & breeding",
-];
+const topicItems = ["All", ...categories];
 
 const HomeFeed = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -34,6 +30,7 @@ const HomeFeed = () => {
   const [error, setError] = useState("");
   const [currentUser, setCurrentUser] = useState(null);
   const [topContributors, setTopContributors] = useState([]);
+  const [communityPulse, setCommunityPulse] = useState(null);
   const [sidebarLoading, setSidebarLoading] = useState(true);
 
   const fetchPosts = useCallback(async () => {
@@ -44,7 +41,7 @@ const HomeFeed = () => {
       const params = {};
       if (query) params.q = query;
       if (selectedCategory !== "All") {
-        params.category = selectedCategory === "DIY & breeding" ? "DIY" : selectedCategory;
+        params.category = selectedCategory;
       }
 
       const response = await api.get("/posts", { params });
@@ -64,9 +61,10 @@ const HomeFeed = () => {
     const fetchSidebarData = async () => {
       setSidebarLoading(true);
 
-      const [userResult, contributorsResult] = await Promise.allSettled([
+      const [userResult, contributorsResult, pulseResult] = await Promise.allSettled([
         api.get("/user"),
         api.get("/users/top-contributors"),
+        api.get("/community-pulse"),
       ]);
 
       if (userResult.status === "fulfilled") {
@@ -77,6 +75,11 @@ const HomeFeed = () => {
       if (contributorsResult.status === "fulfilled") {
         const contributorData = contributorsResult.value.data;
         setTopContributors(contributorData.data || contributorData || []);
+      }
+
+      if (pulseResult.status === "fulfilled") {
+        const pulseData = pulseResult.value.data;
+        setCommunityPulse(pulseData.data || pulseData || null);
       }
 
       setSidebarLoading(false);
@@ -110,8 +113,12 @@ const HomeFeed = () => {
   const userFollowersCount = currentUser?.followers_count ?? 0;
   const userFollowingCount = currentUser?.following_count ?? 0;
 
+  const handlePostDeleted = useCallback((postId) => {
+    setPosts((previous) => previous.filter((post) => post.id !== postId));
+  }, []);
+
   return (
-    <main className="mx-auto w-full max-w-[1440px] min-w-0 px-4 pb-24 pt-5 sm:px-6 md:pb-8 lg:px-8">
+    <main className="mx-auto w-full max-w-360 min-w-0 px-4 pb-24 pt-5 sm:px-6 md:pb-8 lg:px-8">
       <div
         className="mb-4 flex items-center gap-2 overflow-x-auto pb-1 lg:hidden"
         aria-label="Mobile topic filters"
@@ -138,7 +145,7 @@ const HomeFeed = () => {
 
       <div className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-[220px_minmax(0,1fr)_260px] xl:grid-cols-[230px_minmax(0,720px)_280px]">
         <aside
-          className="hidden min-w-0 self-start lg:sticky lg:top-[92px] lg:block"
+          className="hidden min-w-0 self-start lg:sticky lg:top-23 lg:block"
           aria-label="Browse topics"
         >
           <div className="border-b border-slate-200 pb-5 dark:border-slate-800">
@@ -146,7 +153,11 @@ const HomeFeed = () => {
               <h2 className="font-display text-sm font-bold text-slate-950 dark:text-white">
                 Browse topics
               </h2>
-              <SlidersHorizontal size={16} className="text-slate-400" aria-hidden="true" />
+              <SlidersHorizontal
+                size={16}
+                className="text-slate-400"
+                aria-hidden="true"
+              />
             </div>
             <div className="grid gap-1">
               {topicItems.map((category) => {
@@ -184,21 +195,33 @@ const HomeFeed = () => {
                 className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-slate-600 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white"
                 to="/bookmarks"
               >
-                <Bookmark size={16} className="text-teal-700 dark:text-teal-300" aria-hidden="true" />
+                <Bookmark
+                  size={16}
+                  className="text-teal-700 dark:text-teal-300"
+                  aria-hidden="true"
+                />
                 Saved guides
               </Link>
               <Link
                 className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-slate-600 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white"
                 to="/following"
               >
-                <Users size={16} className="text-teal-700 dark:text-teal-300" aria-hidden="true" />
+                <Users
+                  size={16}
+                  className="text-teal-700 dark:text-teal-300"
+                  aria-hidden="true"
+                />
                 Following
               </Link>
               <Link
                 className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-slate-600 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white"
                 to="/profile"
               >
-                <UserRound size={16} className="text-teal-700 dark:text-teal-300" aria-hidden="true" />
+                <UserRound
+                  size={16}
+                  className="text-teal-700 dark:text-teal-300"
+                  aria-hidden="true"
+                />
                 My profile
               </Link>
             </div>
@@ -217,7 +240,9 @@ const HomeFeed = () => {
                 className="flex min-h-11 min-w-0 flex-1 items-center rounded-xl bg-slate-50 px-4 text-sm font-medium text-slate-500 transition-colors duration-200 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800"
                 to="/create-post"
               >
-                <span className="truncate">Ask a question or share your aquarium…</span>
+                <span className="truncate">
+                  Ask a question or share your aquarium…
+                </span>
               </Link>
               <Link
                 className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-teal-700 px-4 text-sm font-bold text-white shadow-sm shadow-teal-700/20 transition-all duration-200 hover:bg-teal-800 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 max-sm:px-3"
@@ -235,7 +260,7 @@ const HomeFeed = () => {
               <p className="text-xs font-bold uppercase tracking-[0.12em] text-teal-700 dark:text-teal-300">
                 AquaHub community
               </p>
-              <h1 className="break-words font-display text-2xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-3xl">
+              <h1 className="wrap-break-word font-display text-2xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-3xl">
                 Latest conversations
               </h1>
               {query && (
@@ -255,11 +280,16 @@ const HomeFeed = () => {
               role="alert"
               aria-live="polite"
             >
-              <AlertTriangle size={17} className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-300" aria-hidden="true" />
+              <AlertTriangle
+                size={17}
+                className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-300"
+                aria-hidden="true"
+              />
               <div className="min-w-0 flex-1">
                 <p className="font-bold">Some community updates are delayed.</p>
-                <p className="mt-0.5 break-words text-xs text-amber-800/80 dark:text-amber-200/80">
-                  {error} Your feed will keep the latest available posts while we reconnect.
+                <p className="mt-0.5 wrap-break-word text-xs text-amber-800/80 dark:text-amber-200/80">
+                  {error} Your feed will keep the latest available posts while
+                  we reconnect.
                 </p>
               </div>
               <button
@@ -278,13 +308,26 @@ const HomeFeed = () => {
               <FeedSkeleton />
             </div>
           ) : posts.length === 0 ? (
-            <FeedEmptyState query={query} category={selectedCategory} onReset={resetFilters} />
+            <FeedEmptyState
+              query={query}
+              category={selectedCategory}
+              onReset={resetFilters}
+            />
           ) : (
-            posts.map((post) => <PostCard key={post.id} post={post} />)
+            posts.map((post) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                onPostDeleted={handlePostDeleted}
+              />
+            ))
           )}
         </section>
 
-        <aside className="min-w-0 space-y-4 self-start lg:sticky lg:top-[92px]" aria-label="Community context">
+        <aside
+          className="min-w-0 space-y-4 self-start lg:sticky lg:top-23"
+          aria-label="Community context"
+        >
           <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-950">
             <div className="flex items-center gap-3">
               <Avatar
@@ -297,7 +340,9 @@ const HomeFeed = () => {
                   {currentUser?.name || "Your profile"}
                 </h2>
                 <p className="truncate text-xs text-slate-500 dark:text-slate-400">
-                  @{currentUser?.name?.replace(/\s/g, "_").toLowerCase() || "aquahub_member"}
+                  @
+                  {currentUser?.name?.replace(/\s/g, "_").toLowerCase() ||
+                    "aquahub_member"}
                   {currentUser?.location ? ` · ${currentUser.location}` : ""}
                 </p>
               </div>
@@ -307,19 +352,25 @@ const HomeFeed = () => {
                 <strong className="block font-display text-lg font-extrabold text-slate-950 dark:text-white">
                   {userPostsCount}
                 </strong>
-                <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Posts</span>
+                <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                  Posts
+                </span>
               </div>
               <div>
                 <strong className="block font-display text-lg font-extrabold text-slate-950 dark:text-white">
                   {userFollowersCount}
                 </strong>
-                <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Followers</span>
+                <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                  Followers
+                </span>
               </div>
               <div>
                 <strong className="block font-display text-lg font-extrabold text-slate-950 dark:text-white">
                   {userFollowingCount}
                 </strong>
-                <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Following</span>
+                <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                  Following
+                </span>
               </div>
             </div>
             <Link
@@ -332,27 +383,67 @@ const HomeFeed = () => {
 
           <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-950">
             <div className="flex items-center justify-between">
-              <h2 className="font-display text-sm font-bold text-slate-950 dark:text-white">Community pulse</h2>
+              <h2 className="font-display text-sm font-bold text-slate-950 dark:text-white">
+                Community pulse
+              </h2>
               <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-400">
-                <span className={`h-2 w-2 rounded-full ${sidebarLoading ? "bg-amber-400" : "bg-emerald-500"}`} />
+                <span
+                  className={`h-2 w-2 rounded-full ${sidebarLoading ? "bg-amber-400" : "bg-emerald-500"}`}
+                />
                 {sidebarLoading ? "Syncing" : "Synced"}
               </span>
             </div>
-            <div className="mt-3">
-              <FeedSkeleton variant="pulse" />
-            </div>
+            {sidebarLoading ? (
+              <div className="mt-3">
+                <FeedSkeleton variant="pulse" />
+              </div>
+            ) : communityPulse ? (
+              <dl className="mt-4 grid grid-cols-2 gap-2">
+                {[
+                  ["Active today", communityPulse.active_today],
+                  ["Total posts", communityPulse.total_posts],
+                  ["Posts today", communityPulse.posts_today],
+                  ["Top category", communityPulse.top_category],
+                ].map(([label, value]) => (
+                  <div
+                    key={label}
+                    className="rounded-xl bg-slate-50 p-3 dark:bg-slate-900"
+                  >
+                    <dt className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                      {label}
+                    </dt>
+                    <dd className="mt-1 truncate font-display text-sm font-extrabold text-slate-950 dark:text-white">
+                      {value ?? 0}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            ) : (
+              <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
+                Community activity is unavailable right now.
+              </p>
+            )}
           </section>
 
           <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-950">
             <div className="flex items-center gap-2">
-              <Bookmark size={16} className="text-teal-700 dark:text-teal-300" aria-hidden="true" />
-              <h2 className="font-display text-sm font-bold text-slate-950 dark:text-white">Saved for later</h2>
+              <Bookmark
+                size={16}
+                className="text-teal-700 dark:text-teal-300"
+                aria-hidden="true"
+              />
+              <h2 className="font-display text-sm font-bold text-slate-950 dark:text-white">
+                Saved for later
+              </h2>
             </div>
             {savedPostsCount === 0 ? (
               <div className="mt-4 rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
-                <p className="text-sm font-bold text-slate-800 dark:text-slate-200">No saved posts yet</p>
-                <p className="mt-1 break-words text-xs leading-5 text-slate-500 dark:text-slate-400">
-                  Bookmark a helpful answer and it will appear here for your next water change.
+                <p className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                  No saved posts yet
+                </p>
+                <p className="mt-1 wrap-break-word text-xs leading-5 text-slate-500 dark:text-slate-400">
+                  Bookmark a helpful answer and it will appear here for your
+                  next water change.
                 </p>
                 <Link
                   className="mt-3 inline-flex min-h-11 items-center gap-2 text-xs font-bold text-teal-700 underline decoration-teal-300 underline-offset-4 transition hover:text-teal-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:text-teal-300 dark:hover:text-teal-100"
@@ -365,7 +456,8 @@ const HomeFeed = () => {
             ) : (
               <div className="mt-4 rounded-xl bg-teal-50 p-4 dark:bg-teal-950/40">
                 <p className="text-sm font-bold text-teal-900 dark:text-teal-100">
-                  {savedPostsCount} saved {savedPostsCount === 1 ? "post" : "posts"} in this feed
+                  {savedPostsCount} saved{" "}
+                  {savedPostsCount === 1 ? "post" : "posts"} in this feed
                 </p>
                 <Link
                   className="mt-3 inline-flex min-h-11 items-center gap-2 text-xs font-bold text-teal-700 underline decoration-teal-300 underline-offset-4 dark:text-teal-300"
@@ -380,21 +472,35 @@ const HomeFeed = () => {
 
           <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-950">
             <div className="flex items-center gap-2">
-              <Award size={16} className="text-teal-700 dark:text-teal-300" aria-hidden="true" />
-              <h2 className="font-display text-sm font-bold text-slate-950 dark:text-white">Top contributors</h2>
+              <Award
+                size={16}
+                className="text-teal-700 dark:text-teal-300"
+                aria-hidden="true"
+              />
+              <h2 className="font-display text-sm font-bold text-slate-950 dark:text-white">
+                Top contributors
+              </h2>
             </div>
             {sidebarLoading ? (
               <div className="mt-4">
                 <FeedSkeleton variant="pulse" />
               </div>
             ) : topContributors.length === 0 ? (
-              <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">No contributors yet.</p>
+              <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
+                No contributors yet.
+              </p>
             ) : (
               <div className="mt-4 grid gap-3">
-                {topContributors.slice(0, 4).map((contributor) => {
-                  const activityScore = (contributor.posts_count ?? 0) + (contributor.comments_count ?? 0);
-                  return (
-                    <div className="flex min-w-0 items-center justify-between gap-3" key={contributor.id}>
+                 {topContributors.slice(0, 4).map((contributor) => {
+                   const activityScore =
+                     contributor.activity_score ??
+                     (contributor.posts_count ?? 0) +
+                       (contributor.comments_count ?? 0);
+                   return (
+                     <div
+                      className="flex min-w-0 items-center justify-between gap-3"
+                      key={contributor.id}
+                    >
                       <div className="flex min-w-0 items-center gap-2">
                         <Avatar
                           src={contributor.avatar}
@@ -419,10 +525,13 @@ const HomeFeed = () => {
           <section className="border-t border-slate-200 pt-4 dark:border-slate-800">
             <div className="flex items-center gap-2">
               <Info size={16} className="text-slate-400" aria-hidden="true" />
-              <h2 className="font-display text-sm font-bold text-slate-950 dark:text-white">About AquaHub</h2>
+              <h2 className="font-display text-sm font-bold text-slate-950 dark:text-white">
+                About AquaHub
+              </h2>
             </div>
-            <p className="mt-2 break-words text-xs leading-5 text-slate-500 dark:text-slate-400">
-              A focused aquarium forum for beginner help, tank journals, disease questions, and equipment advice.
+            <p className="mt-2 wrap-break-word text-xs leading-5 text-slate-500 dark:text-slate-400">
+              A focused aquarium forum for beginner help, tank journals, disease
+              questions, and equipment advice.
             </p>
           </section>
 

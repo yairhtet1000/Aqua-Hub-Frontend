@@ -59,19 +59,29 @@ export const PageEmptyState = ({
     <span className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-teal-50 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300">
       <Icon size={20} aria-hidden="true" />
     </span>
-    <h2 className="mt-4 font-display text-lg font-bold text-slate-950 dark:text-white">{title}</h2>
-    <p className="mx-auto mt-2 max-w-md break-words text-sm leading-6 text-slate-500 dark:text-slate-400">
+    <h2 className="mt-4 font-display text-lg font-bold text-slate-950 dark:text-white">
+      {title}
+    </h2>
+    <p className="mx-auto mt-2 max-w-md wrap-break-word text-sm leading-6 text-slate-500 dark:text-slate-400">
       {description}
     </p>
-    {actionLabel && (onAction ? (
-      <button type="button" onClick={onAction} className={`${primaryActionClass} mt-5`}>
-        {actionLabel}
-      </button>
-    ) : (
-      <Link to={actionTo || "/create-post"} className={`${primaryActionClass} mt-5`}>
-        {actionLabel}
-      </Link>
-    ))}
+    {actionLabel &&
+      (onAction ? (
+        <button
+          type="button"
+          onClick={onAction}
+          className={`${primaryActionClass} mt-5`}
+        >
+          {actionLabel}
+        </button>
+      ) : (
+        <Link
+          to={actionTo || "/create-post"}
+          className={`${primaryActionClass} mt-5`}
+        >
+          {actionLabel}
+        </Link>
+      ))}
   </div>
 );
 
@@ -81,7 +91,11 @@ export const FeedEmptyState = ({ query, category, onReset }) => {
   return (
     <PageEmptyState
       Icon={isFiltered ? Bookmark : MessageSquarePlus}
-      title={isFiltered ? "No conversations match these filters" : "Start the first conversation"}
+      title={
+        isFiltered
+          ? "No conversations match these filters"
+          : "Start the first conversation"
+      }
       description={
         isFiltered
           ? "Try another topic or clear the filters to see more aquarium advice."
@@ -96,7 +110,11 @@ export const FeedEmptyState = ({ query, category, onReset }) => {
 
 export const InlineLoading = ({ label = "Loading" }) => (
   <div className="flex items-center justify-center gap-2 py-12 text-sm font-medium text-slate-500 dark:text-slate-400">
-    <Loader2 size={18} className="animate-spin text-teal-700 dark:text-teal-300" aria-hidden="true" />
+    <Loader2
+      size={18}
+      className="animate-spin text-teal-700 dark:text-teal-300"
+      aria-hidden="true"
+    />
     {label}
   </div>
 );

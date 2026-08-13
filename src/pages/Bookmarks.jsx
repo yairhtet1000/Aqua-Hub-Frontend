@@ -19,7 +19,9 @@ const Bookmarks = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await api.get("/user/saved-posts", { params: { page: pageNum } });
+      const response = await api.get("/user/saved-posts", {
+        params: { page: pageNum },
+      });
       const data = response.data;
       setPosts(data.data || data);
       setTotalPages(data.last_page || 1);
@@ -49,16 +51,16 @@ const Bookmarks = () => {
   };
 
   return (
-    <section className="mx-auto grid w-full max-w-[900px] gap-5 px-4 sm:px-6 lg:px-8">
+    <section className="mx-auto grid w-full max-w-225 gap-5 px-4 sm:px-6 lg:px-8">
       <header className="flex items-end justify-between gap-4 border-b border-slate-200 pb-4 dark:border-slate-800">
         <div className="min-w-0">
           <p className="text-xs font-bold uppercase tracking-[0.12em] text-teal-700 dark:text-teal-300">
             Your library
           </p>
-          <h1 className="mt-1 break-words font-display text-2xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-3xl">
+          <h1 className="mt-1 wrap-break-word font-display text-2xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-3xl">
             Saved bookmarks
           </h1>
-          <p className="mt-2 break-words text-sm leading-6 text-slate-500 dark:text-slate-400">
+          <p className="mt-2 wrap-break-word text-sm leading-6 text-slate-500 dark:text-slate-400">
             Keep the answers and tank journals you want to revisit.
           </p>
         </div>
@@ -77,7 +79,7 @@ const Bookmarks = () => {
           className="flex flex-wrap items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900/70 dark:bg-amber-950/40 dark:text-amber-100"
           role="alert"
         >
-          <p className="min-w-0 flex-1 break-words font-medium">{error}</p>
+          <p className="min-w-0 flex-1 wrap-break-word font-medium">{error}</p>
           <button
             type="button"
             onClick={() => fetchSavedPosts(page)}
@@ -101,14 +103,18 @@ const Bookmarks = () => {
             {posts.map((post) => (
               <div key={post.id} className="grid gap-2">
                 <div className="flex min-h-8 items-center justify-between gap-3 px-1">
-                  <span className="text-xs font-medium text-slate-400">Saved from your feed</span>
+                  <span className="text-xs font-medium text-slate-400">
+                    Saved from your feed
+                  </span>
                   <button
                     type="button"
                     onClick={() => handleUnsave(post.id)}
                     disabled={removingId === post.id}
                     className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600 shadow-sm transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-900"
                   >
-                    {removingId === post.id && <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />}
+                    {removingId === post.id && (
+                      <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    )}
                     Remove from saved
                   </button>
                 </div>

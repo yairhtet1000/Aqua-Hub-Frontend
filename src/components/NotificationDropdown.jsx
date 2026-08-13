@@ -45,7 +45,9 @@ const NotificationDropdown = () => {
     };
   }, [open]);
 
-  const unreadCount = notifications.filter((notification) => !notification.read_at).length;
+  const unreadCount = notifications.filter(
+    (notification) => !notification.read_at,
+  ).length;
 
   const handleMarkRead = async (event, notificationId) => {
     event.preventDefault();
@@ -142,7 +144,10 @@ const NotificationDropdown = () => {
           <div className="max-h-105 overflow-y-auto">
             {loading ? (
               <div className="flex items-center justify-center gap-2 py-10 text-sm text-slate-500 dark:text-slate-400">
-                <Loader2 size={18} className="animate-spin text-teal-700 dark:text-teal-300" />
+                <Loader2
+                  size={18}
+                  className="animate-spin text-teal-700 dark:text-teal-300"
+                />
                 Loading notifications
               </div>
             ) : notifications.length === 0 ? (
@@ -166,16 +171,23 @@ const NotificationDropdown = () => {
                       onClick={() => setOpen(false)}
                       className="grid min-h-16 grid-cols-[40px_minmax(0,1fr)] gap-3 p-3 pr-12 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-600 dark:hover:bg-slate-900"
                     >
-                      <Avatar src={data.sender_avatar} alt={`${senderName} avatar`} sizeClass="h-10 w-10" shapeClass="rounded-lg" />
+                      <Avatar
+                        src={data.sender_avatar}
+                        alt={`${senderName} avatar`}
+                        sizeClass="h-10 w-10"
+                        shapeClass="rounded-lg"
+                      />
                       <span className="min-w-0">
                         <span className="block truncate text-sm font-bold text-slate-950 dark:text-white">
                           {senderName}
                         </span>
-                        <span className="block break-words text-sm leading-5 text-slate-600 dark:text-slate-300">
+                        <span className="block wrap-break-word text-sm leading-5 text-slate-600 dark:text-slate-300">
                           {message}
                         </span>
                         <span className="mt-1 flex items-center gap-2 text-xs font-medium text-slate-400">
-                          {!notification.read_at && <span className="h-2 w-2 rounded-full bg-teal-500" />}
+                          {!notification.read_at && (
+                            <span className="h-2 w-2 rounded-full bg-teal-500" />
+                          )}
                           {formatTimeAgo(notification.created_at)}
                         </span>
                       </span>
@@ -183,7 +195,9 @@ const NotificationDropdown = () => {
                     {!notification.read_at && (
                       <button
                         type="button"
-                        onClick={(event) => handleMarkRead(event, notification.id)}
+                        onClick={(event) =>
+                          handleMarkRead(event, notification.id)
+                        }
                         className="absolute right-2 top-3 grid h-8 w-8 place-items-center rounded-lg bg-white text-slate-500 transition hover:text-teal-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:bg-slate-950 dark:text-slate-400 dark:hover:text-teal-300"
                         title="Mark as read"
                         aria-label={`Mark notification from ${senderName} as read`}

@@ -13,7 +13,11 @@ import {
 import api from "../api/axios";
 import { useAuth, useToast } from "../hooks";
 import Avatar from "../components/Avatar";
-import { FeedSkeleton, InlineLoading, PageEmptyState } from "../components/FeedStates";
+import {
+  FeedSkeleton,
+  InlineLoading,
+  PageEmptyState,
+} from "../components/FeedStates";
 import ReportModal from "../components/ReportModal";
 import SafeImage from "../components/SafeImage";
 import { getImageUrl } from "../utils/imageUrl";
@@ -308,7 +312,10 @@ const PostDetail = () => {
 
   if (loading) {
     return (
-      <div className="mx-auto grid w-full max-w-[960px] gap-4 px-4 sm:px-6 lg:px-8" aria-label="Loading post">
+      <div
+        className="mx-auto grid w-full max-w-240 gap-4 px-4 sm:px-6 lg:px-8"
+        aria-label="Loading post"
+      >
         <FeedSkeleton />
         <FeedSkeleton />
       </div>
@@ -317,7 +324,7 @@ const PostDetail = () => {
 
   if (error || !post) {
     return (
-      <div className="mx-auto w-full max-w-[960px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-240 px-4 sm:px-6 lg:px-8">
         <PageEmptyState
           title="Post unavailable"
           description={error || "This conversation could not be found."}
@@ -333,7 +340,7 @@ const PostDetail = () => {
   const images = post.images?.length > 0 ? post.images : [];
 
   return (
-    <article className="mx-auto grid w-full max-w-[960px] gap-5 px-4 sm:px-6 lg:px-8">
+    <article className="mx-auto grid w-full max-w-240 gap-5 px-4 sm:px-6 lg:px-8">
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-950">
         {images.length > 0 && (
           <div className="relative h-[min(430px,62vw)] min-h-64 overflow-hidden sm:min-h-72">

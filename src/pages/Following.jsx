@@ -41,7 +41,9 @@ const Following = () => {
 
     setUsers((previous) =>
       previous.map((user) =>
-        user.id === targetUser.id ? { ...user, is_following: optimisticFollowing } : user,
+        user.id === targetUser.id
+          ? { ...user, is_following: optimisticFollowing }
+          : user,
       ),
     );
     setActionLoading(targetUser.id);
@@ -50,10 +52,13 @@ const Following = () => {
       const endpoint = optimisticFollowing
         ? `/users/${targetUser.id}/follow`
         : `/users/${targetUser.id}/unfollow`;
-      const { data } = await api[optimisticFollowing ? "post" : "delete"](endpoint);
+      const { data } =
+        await api[optimisticFollowing ? "post" : "delete"](endpoint);
       setUsers((previous) =>
         previous.map((user) =>
-          user.id === targetUser.id ? { ...user, is_following: data.is_following } : user,
+          user.id === targetUser.id
+            ? { ...user, is_following: data.is_following }
+            : user,
         ),
       );
       addToast(data.message, "success");
@@ -71,14 +76,24 @@ const Following = () => {
   ];
 
   return (
-    <section className="mx-auto grid w-full max-w-[860px] gap-5 px-4 sm:px-6 lg:px-8">
+    <section className="mx-auto grid w-full max-w-215 gap-5 px-4 sm:px-6 lg:px-8">
       <header className="border-b border-slate-200 pb-4 dark:border-slate-800">
-        <p className="text-xs font-bold uppercase tracking-[0.12em] text-teal-700 dark:text-teal-300">Community network</p>
-        <h1 className="mt-1 font-display text-2xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-3xl">Network</h1>
-        <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">Keep up with the aquarists and tank journals you trust.</p>
+        <p className="text-xs font-bold uppercase tracking-[0.12em] text-teal-700 dark:text-teal-300">
+          Community network
+        </p>
+        <h1 className="mt-1 font-display text-2xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-3xl">
+          Network
+        </h1>
+        <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
+          Keep up with the aquarists and tank journals you trust.
+        </p>
       </header>
 
-      <div className="flex items-center gap-2 overflow-x-auto border-b border-slate-200 dark:border-slate-800" role="tablist" aria-label="Network views">
+      <div
+        className="flex items-center gap-2 overflow-x-auto border-b border-slate-200 dark:border-slate-800"
+        role="tablist"
+        aria-label="Network views"
+      >
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.key;
@@ -119,10 +134,19 @@ const Following = () => {
               key={user.id}
               className="grid grid-cols-[48px_minmax(0,1fr)] items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-900/5 transition-shadow hover:shadow-md dark:border-slate-800 dark:bg-slate-950 sm:grid-cols-[48px_minmax(0,1fr)_auto]"
             >
-              <Avatar src={user.avatar} alt={`${user.name || "User"} avatar`} sizeClass="h-12 w-12" shapeClass="rounded-xl" />
+              <Avatar
+                src={user.avatar}
+                alt={`${user.name || "User"} avatar`}
+                sizeClass="h-12 w-12"
+                shapeClass="rounded-xl"
+              />
               <div className="min-w-0">
-                <strong className="block truncate font-display text-base font-bold text-slate-950 dark:text-white">{user.name}</strong>
-                <p className="mt-1 break-words text-sm leading-6 text-slate-600 dark:text-slate-300">{user.bio || "AquaHub community member"}</p>
+                <strong className="block truncate font-display text-base font-bold text-slate-950 dark:text-white">
+                  {user.name}
+                </strong>
+                <p className="mt-1 wrap-break-word text-sm leading-6 text-slate-600 dark:text-slate-300">
+                  {user.bio || "AquaHub community member"}
+                </p>
               </div>
               {user.id !== authUser?.id && (
                 <button

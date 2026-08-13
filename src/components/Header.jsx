@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { Bookmark, Home, Moon, PenSquare, Search, Sun, Users } from "lucide-react";
+import {
+  Bookmark,
+  Home,
+  Moon,
+  PenSquare,
+  Search,
+  Sun,
+  Users,
+} from "lucide-react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import NotificationDropdown from "./NotificationDropdown";
 import Avatar from "./Avatar";
@@ -28,7 +36,7 @@ const AquaHubHeader = ({ currentUser, theme, onToggleTheme }) => {
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200/90 bg-white dark:border-slate-800 dark:bg-slate-950">
-      <div className="mx-auto grid min-h-[72px] w-full max-w-[1440px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 sm:px-6 lg:grid-cols-[220px_minmax(300px,1fr)_auto] lg:gap-8 lg:px-8">
+      <div className="mx-auto grid min-h-18 w-full max-w-360 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 sm:px-6 lg:grid-cols-[220px_minmax(300px,1fr)_auto] lg:gap-8 lg:px-8">
         <Link
           className="flex min-h-11 items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2"
           to="/"
@@ -43,13 +51,17 @@ const AquaHubHeader = ({ currentUser, theme, onToggleTheme }) => {
         </Link>
 
         <form
-          className="hidden h-11 min-w-0 items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 md:flex lg:max-w-[560px]"
+          className="hidden h-11 min-w-0 items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 md:flex lg:max-w-140"
           onSubmit={handleSearch}
           role="search"
         >
-          <Search size={16} className="shrink-0 text-slate-400" aria-hidden="true" />
+          <Search
+            size={16}
+            className="shrink-0 text-slate-400"
+            aria-hidden="true"
+          />
           <input
-            className="min-w-0 flex-1 bg-transparent text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none dark:text-slate-100"
+            className="min-w-0 flex-1 bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none dark:text-black dark:placeholder:text-slate-500 caret-slate-900 dark:caret-black"
             name="query"
             aria-label="Search AquaHub"
             placeholder="Search questions, fish, or tags"
@@ -60,7 +72,10 @@ const AquaHubHeader = ({ currentUser, theme, onToggleTheme }) => {
         </form>
 
         <div className="flex items-center justify-end gap-2">
-          <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary navigation">
+          <nav
+            className="hidden items-center gap-1 lg:flex"
+            aria-label="Primary navigation"
+          >
             <NavLink className={navLinkClass} to="/" end>
               <Home size={16} aria-hidden="true" />
               Feed
@@ -95,10 +110,18 @@ const AquaHubHeader = ({ currentUser, theme, onToggleTheme }) => {
             type="button"
             className={iconButtonClass}
             onClick={onToggleTheme}
-            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            aria-label={
+              theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+            }
+            title={
+              theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+            }
           >
-            {theme === "dark" ? <Sun size={17} aria-hidden="true" /> : <Moon size={17} aria-hidden="true" />}
+            {theme === "dark" ? (
+              <Sun size={17} aria-hidden="true" />
+            ) : (
+              <Moon size={17} aria-hidden="true" />
+            )}
           </button>
 
           <Link
@@ -106,7 +129,11 @@ const AquaHubHeader = ({ currentUser, theme, onToggleTheme }) => {
             to="/profile"
             aria-label="Open profile"
           >
-            <Avatar src={currentUser?.avatar} alt={`${currentUser?.name || "Your"} profile`} sizeClass="h-9 w-9" />
+            <Avatar
+              src={currentUser?.avatar}
+              alt={`${currentUser?.name || "Your"} profile`}
+              sizeClass="h-9 w-9"
+            />
             <span className="hidden max-w-28 truncate text-sm font-bold text-slate-800 dark:text-slate-100 sm:block">
               {currentUser?.name || "Profile"}
             </span>
@@ -121,10 +148,14 @@ const AquaHubHeader = ({ currentUser, theme, onToggleTheme }) => {
           role="search"
         >
           <div className="flex h-11 items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 dark:border-slate-800 dark:bg-slate-900">
-            <Search size={16} className="shrink-0 text-slate-400" aria-hidden="true" />
+            <Search
+              size={16}
+              className="shrink-0 text-slate-400"
+              aria-hidden="true"
+            />
             <input
               autoFocus
-              className="min-w-0 flex-1 bg-transparent text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none dark:text-slate-100"
+              className="min-w-0 flex-1 bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none dark:text-black dark:placeholder:text-slate-500 caret-slate-900 dark:caret-black"
               name="query"
               aria-label="Search AquaHub"
               placeholder="Search questions, fish, or tags"
