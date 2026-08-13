@@ -38,7 +38,7 @@ const PublicAppLayout = ({ theme, onToggleTheme }) => {
         theme={theme}
         onToggleTheme={onToggleTheme}
       />
-      <main className="w-full px-4 pb-24 pt-5 sm:px-6 md:pb-5 lg:px-8">
+      <main className="w-full min-w-0 pb-24 pt-5 md:pb-8">
         <Outlet />
       </main>
       <BottomNav />

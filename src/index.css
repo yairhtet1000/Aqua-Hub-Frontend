@@ -1,25 +1,43 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Roboto:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+  --font-sans: "Roboto", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
+  --font-body: "Roboto", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  --font-display: "Poppins", ui-sans-serif, system-ui, sans-serif;
 }
 
-html {
-  background: #f8fafc;
-}
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
 
-body {
-  margin: 0;
-  min-width: 320px;
-}
+  html {
+    background: var(--color-slate-50);
+  }
 
-button,
-a,
-input,
-select,
-textarea {
-  outline-color: #0f766e;
+  body {
+    min-width: 320px;
+    margin: 0;
+    background: var(--color-slate-50);
+    color: var(--color-slate-950);
+    font-family: var(--font-body);
+  }
+
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    outline-color: transparent;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-teal-600);
+    outline-offset: 2px;
+  }
 }

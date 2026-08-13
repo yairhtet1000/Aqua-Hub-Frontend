@@ -1,188 +1,136 @@
 import { useState } from "react";
+import { Bookmark, Home, Moon, PenSquare, Search, Sun, Users } from "lucide-react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import {
-  Bookmark,
-  Filter,
-  Home,
-  Moon,
-  PenSquare,
-  Search,
-  Settings,
-  Sun,
-  Users,
-  X,
-} from "lucide-react";
-import { categories } from "../data/mockData";
-import { getImageUrl } from "../utils/imageUrl";
 import NotificationDropdown from "./NotificationDropdown";
+import Avatar from "./Avatar";
 
 const navLinkClass = ({ isActive }) =>
   [
-    "inline-flex h-10 items-center gap-2 rounded-md px-3 text-sm font-semibold transition",
+    "inline-flex min-h-11 items-center gap-2 rounded-xl px-3.5 text-sm font-bold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2",
     isActive
-      ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950"
+      ? "bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
       : "text-slate-600 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white",
   ].join(" ");
 
 const iconButtonClass =
-  "grid h-10 w-10 place-items-center rounded-md border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 hover:text-slate-950 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white";
+  "grid h-11 w-11 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 transition-all duration-200 hover:bg-slate-50 hover:text-slate-950 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white";
 
 const AquaHubHeader = ({ currentUser, theme, onToggleTheme }) => {
   const navigate = useNavigate();
   const [showMobileSearch, setShowMobileSearch] = useState(false);
-  const [showTopics, setShowTopics] = useState(false);
 
   const handleSearch = (event) => {
     event.preventDefault();
-    const query = new FormData(event.currentTarget).get("query").trim();
+    const query = new FormData(event.currentTarget).get("query")?.trim() || "";
     navigate(query ? `/?q=${encodeURIComponent(query)}` : "/");
     setShowMobileSearch(false);
   };
 
-  const goToCategory = (category) => {
-    setShowTopics(false);
-    navigate(
-      category === "All" ? "/" : `/?category=${encodeURIComponent(category)}`,
-    );
-  };
-
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
-      <div className="grid min-h-16 w-full grid-cols-[240px_minmax(240px,680px)_1fr] items-center gap-6 px-4 sm:px-6 lg:px-8 max-lg:grid-cols-[auto_1fr_auto] max-lg:gap-3">
-        <Link className="flex items-center gap-3 justify-self-start" to="/">
-          <span className="grid h-10 w-10 place-items-center rounded-lg bg-teal-700 text-sm font-black text-white">
+    <header className="sticky top-0 z-50 border-b border-slate-200/90 bg-white dark:border-slate-800 dark:bg-slate-950">
+      <div className="mx-auto grid min-h-[72px] w-full max-w-[1440px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 sm:px-6 lg:grid-cols-[220px_minmax(300px,1fr)_auto] lg:gap-8 lg:px-8">
+        <Link
+          className="flex min-h-11 items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2"
+          to="/"
+          aria-label="AquaHub home"
+        >
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-teal-700 font-display text-sm font-extrabold text-white shadow-sm shadow-teal-700/20">
             Aq
           </span>
-          <span className="text-xl font-black tracking-tight text-slate-950 dark:text-white max-sm:hidden">
+          <span className="font-display text-xl font-extrabold tracking-tight text-slate-950 dark:text-white max-sm:hidden">
             AquaHub
           </span>
         </Link>
 
         <form
-          className="mx-auto flex h-11 w-full items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 dark:border-slate-800 dark:bg-slate-900 max-lg:hidden"
+          className="hidden h-11 min-w-0 items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 md:flex lg:max-w-[560px]"
           onSubmit={handleSearch}
+          role="search"
         >
-          <Search size={18} className="shrink-0 text-slate-400" />
+          <Search size={16} className="shrink-0 text-slate-400" aria-hidden="true" />
           <input
-            className="w-full bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none dark:text-slate-100"
+            className="min-w-0 flex-1 bg-transparent text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none dark:text-slate-100"
             name="query"
-            placeholder="Search AquaHub"
+            aria-label="Search AquaHub"
+            placeholder="Search questions, fish, or tags"
           />
+          <kbd className="hidden rounded-md border border-slate-200 bg-white px-2 py-1 text-[10px] font-bold text-slate-400 dark:border-slate-700 dark:bg-slate-900 lg:inline">
+            ⌘ K
+          </kbd>
         </form>
 
-        <div className="relative flex items-center justify-end gap-2">
-          <nav
-            className="flex items-center gap-1 max-lg:hidden"
-            aria-label="Primary navigation"
-          >
+        <div className="flex items-center justify-end gap-2">
+          <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary navigation">
             <NavLink className={navLinkClass} to="/" end>
-              <Home size={17} />
+              <Home size={16} aria-hidden="true" />
               Feed
             </NavLink>
             <NavLink className={navLinkClass} to="/create-post">
-              <PenSquare size={17} />
+              <PenSquare size={16} aria-hidden="true" />
               Post
             </NavLink>
             <NavLink className={navLinkClass} to="/bookmarks">
-              <Bookmark size={17} />
+              <Bookmark size={16} aria-hidden="true" />
               Saved
             </NavLink>
             <NavLink className={navLinkClass} to="/following">
-              <Users size={17} />
+              <Users size={16} aria-hidden="true" />
               Following
             </NavLink>
           </nav>
 
           <button
-            className={`${iconButtonClass} lg:hidden`}
-            onClick={() => setShowTopics((value) => !value)}
-            title="Browse topics"
-          >
-            {showTopics ? <X size={18} /> : <Filter size={18} />}
-          </button>
-
-          <button
-            className={`${iconButtonClass} lg:hidden`}
+            type="button"
+            className={`${iconButtonClass} md:hidden`}
             onClick={() => setShowMobileSearch((value) => !value)}
-            title="Search"
+            aria-label={showMobileSearch ? "Close search" : "Search"}
+            aria-expanded={showMobileSearch}
           >
-            <Search size={18} />
+            <Search size={17} aria-hidden="true" />
           </button>
-
-          <Link
-            className={`${iconButtonClass} lg:hidden`}
-            to="/create-post"
-            title="Create post"
-          >
-            <PenSquare size={18} />
-          </Link>
 
           <NotificationDropdown />
 
           <button
+            type="button"
             className={iconButtonClass}
             onClick={onToggleTheme}
-            title={
-              theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
-            }
+            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
           >
-            {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+            {theme === "dark" ? <Sun size={17} aria-hidden="true" /> : <Moon size={17} aria-hidden="true" />}
           </button>
 
           <Link
-            className="flex h-10 items-center gap-2 rounded-md border border-slate-200 bg-white p-1 pr-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-900 max-lg:pr-1"
+            className="flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white p-1 pr-3 transition-colors duration-200 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 dark:border-slate-800 dark:bg-slate-950 dark:hover:bg-slate-900 max-sm:pr-1"
             to="/profile"
-            title="Profile"
+            aria-label="Open profile"
           >
-            <img
-              className="h-8 w-8 rounded-full object-cover"
-              src={getImageUrl(currentUser.avatar)}
-              alt=""
-            />
-            <span className="max-lg:hidden">{currentUser.name}</span>
-          </Link>
-
-          <Link
-            className={`${iconButtonClass} max-lg:hidden`}
-            to="/settings/edit-profile"
-            title="Settings"
-          >
-            <Settings size={18} />
+            <Avatar src={currentUser?.avatar} alt={`${currentUser?.name || "Your"} profile`} sizeClass="h-9 w-9" />
+            <span className="hidden max-w-28 truncate text-sm font-bold text-slate-800 dark:text-slate-100 sm:block">
+              {currentUser?.name || "Profile"}
+            </span>
           </Link>
         </div>
       </div>
 
       {showMobileSearch && (
         <form
-          className="border-t border-slate-200 px-4 py-3 dark:border-slate-800 lg:hidden"
+          className="border-t border-slate-200 px-4 py-3 dark:border-slate-800 md:hidden"
           onSubmit={handleSearch}
+          role="search"
         >
-          <div className="flex h-11 items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 dark:border-slate-800 dark:bg-slate-900">
-            <Search size={18} className="shrink-0 text-slate-400" />
+          <div className="flex h-11 items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 dark:border-slate-800 dark:bg-slate-900">
+            <Search size={16} className="shrink-0 text-slate-400" aria-hidden="true" />
             <input
               autoFocus
-              className="w-full bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none dark:text-slate-100"
+              className="min-w-0 flex-1 bg-transparent text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none dark:text-slate-100"
               name="query"
-              placeholder="Search AquaHub"
+              aria-label="Search AquaHub"
+              placeholder="Search questions, fish, or tags"
             />
           </div>
         </form>
-      )}
-
-      {showTopics && (
-        <div className="border-t border-slate-200 px-4 py-3 dark:border-slate-800 lg:hidden">
-          <div className="grid grid-cols-2 gap-2">
-            {["All", ...categories].map((category) => (
-              <button
-                className="h-10 rounded-lg bg-slate-100 px-3 text-left text-sm font-semibold text-slate-700 dark:bg-slate-900 dark:text-slate-200"
-                key={category}
-                onClick={() => goToCategory(category)}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
-        </div>
       )}
     </header>
   );

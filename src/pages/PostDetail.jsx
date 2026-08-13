@@ -11,13 +11,15 @@ import {
   Trash2,
 } from "lucide-react";
 import api from "../api/axios";
-import { useAuth } from "../hooks";
-import { useToast } from "../hooks";
-import { getImageUrl } from "../utils/imageUrl";
+import { useAuth, useToast } from "../hooks";
+import Avatar from "../components/Avatar";
+import { FeedSkeleton, InlineLoading, PageEmptyState } from "../components/FeedStates";
 import ReportModal from "../components/ReportModal";
+import SafeImage from "../components/SafeImage";
+import { getImageUrl } from "../utils/imageUrl";
 
 const actionClass =
-  "inline-flex h-11 min-w-32 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-black text-slate-600 transition hover:bg-teal-50 hover:text-teal-900 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-teal-300";
+  "inline-flex min-h-11 min-w-20 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-600 transition-all duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 hover:bg-slate-50 hover:text-slate-950 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white";
 
 const PostDetail = () => {
   const { id } = useParams();
@@ -184,13 +186,14 @@ const PostDetail = () => {
     const author = comment.user;
     return (
       <div
-        className="grid grid-cols-[44px_1fr] gap-3 rounded-3xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950"
+        className="grid grid-cols-[44px_minmax(0,1fr)] gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-950"
         key={comment.id}
       >
-        <img
-          className="h-11 w-11 rounded-full object-cover"
-          src={getImageUrl(author?.avatar)}
-          alt=""
+        <Avatar
+          src={author?.avatar}
+          alt={`${author?.name || "User"} avatar`}
+          sizeClass="h-11 w-11"
+          shapeClass="rounded-xl"
         />
         <div className="min-w-0">
           <strong className="text-slate-950 dark:text-white">
@@ -204,7 +207,7 @@ const PostDetail = () => {
               onClick={() =>
                 setReplyingTo(replyingTo === comment.id ? null : comment.id)
               }
-              className="inline-flex h-9 min-w-24 items-center justify-center gap-2 rounded-full bg-slate-100 px-3 text-sm font-black text-slate-600 dark:bg-slate-900 dark:text-slate-300"
+              className="inline-flex min-h-11 min-w-24 items-center justify-center gap-2 rounded-xl bg-slate-100 px-3 text-sm font-bold text-slate-600 transition hover:bg-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
             >
               <Reply size={15} />
               Reply
@@ -214,17 +217,23 @@ const PostDetail = () => {
                 setReportingCommentId(comment.id);
                 setShowCommentReport(true);
               }}
-              className="inline-flex h-9 min-w-24 items-center justify-center gap-2 rounded-full bg-slate-100 px-3 text-sm font-black text-slate-600 dark:bg-slate-900 dark:text-slate-300"
+              className="inline-flex min-h-11 min-w-24 items-center justify-center gap-2 rounded-xl bg-slate-100 px-3 text-sm font-bold text-slate-600 transition hover:bg-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
             >
               <Flag size={15} />
               Report
             </button>
             {comment.user_id === user?.id && (
               <>
-                <button className="h-9 min-w-20 rounded-full bg-slate-100 px-3 text-sm font-black text-slate-600 dark:bg-slate-900 dark:text-slate-300">
+                <button
+                  type="button"
+                  className="inline-flex min-h-11 min-w-20 items-center justify-center rounded-xl bg-slate-100 px-3 text-sm font-bold text-slate-600 transition hover:bg-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+                >
                   Edit
                 </button>
-                <button className="h-9 min-w-20 rounded-full bg-slate-100 px-3 text-sm font-black text-slate-600 dark:bg-slate-900 dark:text-slate-300">
+                <button
+                  type="button"
+                  className="inline-flex min-h-11 min-w-20 items-center justify-center rounded-xl bg-slate-100 px-3 text-sm font-bold text-slate-600 transition hover:bg-rose-50 hover:text-rose-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-rose-950/40 dark:hover:text-rose-300"
+                >
                   Delete
                 </button>
               </>
@@ -276,13 +285,14 @@ const PostDetail = () => {
     const replyAuthor = reply.user;
     return (
       <div
-        className="grid grid-cols-[36px_1fr] gap-3 rounded-2xl bg-slate-50 p-3 dark:bg-slate-900"
+        className="grid grid-cols-[36px_minmax(0,1fr)] gap-3 rounded-xl bg-slate-50 p-3 dark:bg-slate-900"
         key={reply.id}
       >
-        <img
-          className="h-9 w-9 rounded-full object-cover"
-          src={getImageUrl(replyAuthor?.avatar)}
-          alt=""
+        <Avatar
+          src={replyAuthor?.avatar}
+          alt={`${replyAuthor?.name || "User"} avatar`}
+          sizeClass="h-9 w-9"
+          shapeClass="rounded-lg"
         />
         <div>
           <strong className="text-sm text-slate-950 dark:text-white">
@@ -298,16 +308,22 @@ const PostDetail = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-teal-700 border-t-transparent" />
+      <div className="mx-auto grid w-full max-w-[960px] gap-4 px-4 sm:px-6 lg:px-8" aria-label="Loading post">
+        <FeedSkeleton />
+        <FeedSkeleton />
       </div>
     );
   }
 
   if (error || !post) {
     return (
-      <div className="rounded-3xl bg-white p-12 text-center font-black text-slate-600 shadow-xl dark:bg-slate-950 dark:text-slate-300">
-        {error || "Post not found."}
+      <div className="mx-auto w-full max-w-[960px] px-4 sm:px-6 lg:px-8">
+        <PageEmptyState
+          title="Post unavailable"
+          description={error || "This conversation could not be found."}
+          actionLabel="Back to feed"
+          actionTo="/"
+        />
       </div>
     );
   }
@@ -317,25 +333,26 @@ const PostDetail = () => {
   const images = post.images?.length > 0 ? post.images : [];
 
   return (
-    <article className="mx-auto grid w-[min(960px,100%)] gap-5">
-      <div className="overflow-hidden rounded-4xl bg-white shadow-2xl shadow-slate-950/10 ring-1 ring-slate-200 dark:bg-slate-950 dark:ring-slate-800">
+    <article className="mx-auto grid w-full max-w-[960px] gap-5 px-4 sm:px-6 lg:px-8">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-950">
         {images.length > 0 && (
-          <div className="relative h-[min(430px,52vw)] min-h-72 overflow-hidden">
-            <img
-              className="h-full w-full object-cover"
+          <div className="relative h-[min(430px,62vw)] min-h-64 overflow-hidden sm:min-h-72">
+            <SafeImage
+              className="h-full w-full max-w-full object-cover"
               src={getImageUrl(images[0].image_path)}
-              alt=""
+              alt={`${post.title} aquarium photo`}
             />
             <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-slate-950/90 to-transparent p-7 text-white">
               <div className="mb-3 flex flex-wrap items-center gap-3 text-sm">
                 <Link
                   to={`/users/${author?.id}`}
-                  className="inline-flex items-center gap-2 rounded-full bg-white/15 py-1 pl-1 pr-3 font-black backdrop-blur"
+                  className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-white/15 py-1 pl-1 pr-3 font-bold backdrop-blur focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300"
                 >
-                  <img
-                    className="h-8 w-8 rounded-full object-cover"
-                    src={getImageUrl(author?.avatar)}
-                    alt=""
+                  <Avatar
+                    src={author?.avatar}
+                    alt={`${author?.name || "User"} avatar`}
+                    sizeClass="h-8 w-8"
+                    shapeClass="rounded-lg"
                   />
                   {author?.name}
                 </Link>
@@ -355,12 +372,13 @@ const PostDetail = () => {
             <div className="mb-3 flex flex-wrap items-center gap-3 text-sm">
               <Link
                 to={`/users/${author?.id}`}
-                className="inline-flex items-center gap-2 rounded-full bg-white/15 py-1 pl-1 pr-3 font-black backdrop-blur text-slate-950"
+                className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-slate-100 py-1 pl-1 pr-3 font-bold text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600"
               >
-                <img
-                  className="h-8 w-8 rounded-full object-cover"
-                  src={getImageUrl(author?.avatar)}
-                  alt=""
+                <Avatar
+                  src={author?.avatar}
+                  alt={`${author?.name || "User"} avatar`}
+                  sizeClass="h-8 w-8"
+                  shapeClass="rounded-lg"
                 />
                 {author?.name}
               </Link>
@@ -375,7 +393,7 @@ const PostDetail = () => {
         )}
       </div>
 
-      <div className="grid gap-5 rounded-3xl border border-slate-200 bg-white p-5 shadow-xl shadow-slate-950/5 dark:border-slate-800 dark:bg-slate-950 sm:p-7">
+      <div className="grid gap-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-950 sm:p-7">
         <p className="text-lg leading-8 text-slate-700 dark:text-slate-300">
           {post.content}
         </p>
@@ -455,17 +473,17 @@ const PostDetail = () => {
           ) : (
             <form
               onSubmit={handleSubmitComment}
-              className="grid gap-3 rounded-3xl bg-slate-50 p-4 dark:bg-slate-900"
+              className="grid gap-3 rounded-2xl bg-slate-50 p-4 dark:bg-slate-900"
             >
               <textarea
-                className="min-h-28 resize-y rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700 placeholder:text-slate-400 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
+                className="min-h-28 resize-y rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-600 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
                 placeholder="Add helpful context, ask for water parameters, or share what worked for your tank"
                 value={commentContent}
                 onChange={(e) => setCommentContent(e.target.value)}
                 required
               />
               <button
-                className="inline-flex h-11 w-40 items-center justify-center gap-2 rounded-full bg-teal-700 px-5 text-sm font-black text-white shadow-lg shadow-teal-900/20 disabled:opacity-60"
+                className="inline-flex min-h-11 w-40 items-center justify-center gap-2 rounded-xl bg-teal-700 px-5 text-sm font-bold text-white shadow-sm shadow-teal-700/20 transition hover:bg-teal-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
                 type="submit"
                 disabled={submittingComment}
               >
@@ -476,9 +494,7 @@ const PostDetail = () => {
           )}
 
           {commentsLoading ? (
-            <div className="flex items-center justify-center py-10">
-              <div className="h-6 w-6 animate-spin rounded-full border-4 border-teal-700 border-t-transparent" />
-            </div>
+            <InlineLoading label="Loading comments" />
           ) : comments.length === 0 ? (
             <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm font-semibold text-slate-500 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400">
               No comments yet. Start the discussion!

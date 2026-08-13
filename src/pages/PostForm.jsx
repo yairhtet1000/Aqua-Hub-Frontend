@@ -3,11 +3,14 @@ import { ImagePlus, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import api from "../api/axios";
 import { useToast } from "../hooks";
+import { InlineLoading } from "../components/FeedStates";
+import SafeImage from "../components/SafeImage";
+import { getImageUrl } from "../utils/imageUrl";
 
 const fieldClass =
-  "h-12 rounded-2xl border border-slate-200 bg-white px-4 text-slate-800 shadow-sm focus:outline-teal-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100";
+  "min-h-11 rounded-xl border border-slate-200 bg-white px-4 text-slate-800 shadow-sm transition focus:outline-none focus:ring-2 focus:ring-teal-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100";
 const labelClass =
-  "grid gap-2 text-sm font-black text-slate-700 dark:text-slate-200";
+  "grid gap-2 text-sm font-bold text-slate-700 dark:text-slate-200";
 
 const PostForm = () => {
   const { id } = useParams();
@@ -146,31 +149,26 @@ const PostForm = () => {
   ];
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-teal-700 border-t-transparent" />
-      </div>
-    );
+    return <InlineLoading label="Loading post editor" />;
   }
 
   return (
-    <div className="mx-auto grid w-[min(940px,100%)] gap-5">
-      <div className="rounded-4xl bg-slate-950 p-7 text-white shadow-2xl shadow-teal-950/20 sm:p-9">
-        <span className="mb-3 block text-sm font-black uppercase tracking-[0.16em] text-cyan-200">
+    <div className="mx-auto grid w-full max-w-[940px] gap-5 px-4 sm:px-6 lg:px-8">
+      <div className="border-b border-slate-200 pb-4 dark:border-slate-800">
+        <span className="text-xs font-bold uppercase tracking-[0.12em] text-teal-700 dark:text-teal-300">
           {isEdit ? "Update discussion" : "New community discussion"}
         </span>
-        <h1 className="text-4xl font-black tracking-tight sm:text-5xl">
+        <h1 className="mt-1 break-words font-display text-2xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-3xl">
           {isEdit ? "Edit post" : "Create a forum post"}
         </h1>
-        <p className="mt-4 max-w-2xl leading-7 text-cyan-50/80">
-          Add useful context, choose the right category, and attach photos so
-          experienced keepers can help quickly.
+        <p className="mt-2 max-w-2xl break-words text-sm leading-6 text-slate-500 dark:text-slate-400">
+          Add useful context, choose the right category, and attach photos so experienced keepers can help quickly.
         </p>
       </div>
 
       <form
         onSubmit={handleSubmit}
-        className="grid gap-5 rounded-3xl border border-slate-200 bg-white p-5 shadow-xl shadow-slate-950/5 dark:border-slate-800 dark:bg-slate-950 sm:p-7"
+        className="grid gap-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-950 sm:p-7"
       >
         <label className={labelClass}>
           Title
@@ -240,7 +238,7 @@ const PostForm = () => {
         <label className={labelClass}>
           Post content
           <textarea
-            className="min-h-56 resize-y rounded-2xl border border-slate-200 bg-white p-4 text-slate-800 shadow-sm focus:outline-teal-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
+            className="min-h-56 resize-y rounded-xl border border-slate-200 bg-white p-4 text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Describe tank size, livestock, water parameters, timeline, and what you already tried."
@@ -248,7 +246,7 @@ const PostForm = () => {
           />
         </label>
 
-        <label className="grid min-h-44 place-items-center gap-2 rounded-3xl border border-dashed border-teal-200 bg-teal-50/60 p-6 text-center text-teal-900 dark:border-teal-900 dark:bg-teal-950/40 dark:text-teal-200">
+        <label className="grid min-h-44 place-items-center gap-2 rounded-2xl border border-dashed border-teal-200 bg-teal-50/60 p-6 text-center text-teal-900 dark:border-teal-900 dark:bg-teal-950/40 dark:text-teal-200">
           <ImagePlus size={28} />
           <span className="font-black">Upload aquarium photo</span>
           <small className="font-bold text-slate-500 dark:text-slate-400">
@@ -264,10 +262,10 @@ const PostForm = () => {
 
         {preview && (
           <div className="flex items-center gap-4 rounded-2xl bg-slate-50 p-3 dark:bg-slate-900">
-            <img
-              className="h-20 w-28 rounded-2xl object-cover"
-              src={preview}
-              alt="Preview"
+            <SafeImage
+              className="h-20 w-28 rounded-xl object-cover"
+              src={preview.startsWith("blob:") ? preview : getImageUrl(preview)}
+              alt="Aquarium photo preview"
             />
             <span className="font-bold text-slate-600 dark:text-slate-300">
               {isEdit ? "Current photo preview" : "Selected photo preview"}
@@ -284,7 +282,7 @@ const PostForm = () => {
                 setStatus(action.key);
                 handleSubmit(e, action.key);
               }}
-              className={`inline-flex h-12 min-w-36 items-center justify-center gap-2 rounded-full px-5 text-sm font-black transition disabled:opacity-60 ${
+              className={`inline-flex min-h-11 min-w-36 items-center justify-center gap-2 rounded-xl px-5 text-sm font-bold transition-all duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 ${
                 status === action.key
                   ? "bg-teal-700 text-white shadow-lg shadow-teal-900/20"
                   : "border border-slate-200 bg-white text-slate-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
@@ -294,7 +292,7 @@ const PostForm = () => {
             </button>
           ))}
           <Link
-            className="inline-flex h-12 min-w-32 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-6 text-sm font-black text-slate-600 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300"
+            className="inline-flex min-h-11 min-w-32 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-6 text-sm font-bold text-slate-600 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-900"
             to={isEdit ? `/posts/${id}` : "/"}
           >
             <X size={18} />

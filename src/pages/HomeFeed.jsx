@@ -1,17 +1,28 @@
-import { useEffect, useState, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
+  AlertTriangle,
   Award,
-  BookOpen,
+  ArrowUpRight,
+  Bookmark,
   Filter,
+  Info,
   MessageSquarePlus,
-  ShieldCheck,
+  SlidersHorizontal,
   UserRound,
   Users,
 } from "lucide-react";
-import PostCard from "../components/PostCard";
 import api from "../api/axios";
-import { getAvatarUrl } from "../utils/imageUrl";
+import PostCard from "../components/PostCard";
+import Avatar from "../components/Avatar";
+import { FeedEmptyState, FeedSkeleton } from "../components/FeedStates";
+import { categories } from "../data/mockData";
+
+const topicItems = [
+  "All",
+  ...categories.filter((category) => !["DIY", "Breeding"].includes(category)).slice(0, 6),
+  "DIY & breeding",
+];
 
 const HomeFeed = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -28,15 +39,18 @@ const HomeFeed = () => {
   const fetchPosts = useCallback(async () => {
     setLoading(true);
     setError("");
+
     try {
       const params = {};
       if (query) params.q = query;
-      if (selectedCategory !== "All") params.category = selectedCategory;
+      if (selectedCategory !== "All") {
+        params.category = selectedCategory === "DIY & breeding" ? "DIY" : selectedCategory;
+      }
 
       const response = await api.get("/posts", { params });
       setPosts(response.data.data || response.data || []);
     } catch {
-      setError("Failed to load posts.");
+      setError("We couldn't refresh the latest conversations.");
     } finally {
       setLoading(false);
     }
@@ -61,8 +75,8 @@ const HomeFeed = () => {
       }
 
       if (contributorsResult.status === "fulfilled") {
-        const contribData = contributorsResult.value.data;
-        setTopContributors(contribData.data || contribData || []);
+        const contributorData = contributorsResult.value.data;
+        setTopContributors(contributorData.data || contributorData || []);
       }
 
       setSidebarLoading(false);
@@ -73,265 +87,352 @@ const HomeFeed = () => {
 
   const updateCategory = (category) => {
     const next = new URLSearchParams(searchParams);
-    category === "All"
-      ? next.delete("category")
-      : next.set("category", category);
+    if (category === "All") {
+      next.delete("category");
+    } else {
+      next.set("category", category);
+    }
     setSearchParams(next);
   };
 
+  const resetFilters = () => {
+    const next = new URLSearchParams(searchParams);
+    next.delete("q");
+    next.delete("category");
+    setSearchParams(next);
+  };
+
+  const savedPostsCount = useMemo(
+    () => posts.filter((post) => post.is_saved).length,
+    [posts],
+  );
   const userPostsCount = currentUser?.posts_count ?? 0;
-  const userFollowersCount = 0;
-  const userFollowingCount = 0;
+  const userFollowersCount = currentUser?.followers_count ?? 0;
+  const userFollowingCount = currentUser?.following_count ?? 0;
 
   return (
-    <div className="grid w-full grid-cols-[260px_minmax(0,1fr)_260px] gap-0 max-xl:grid-cols-[240px_minmax(0,1fr)_240px] max-lg:grid-cols-1">
-      <aside className="sticky top-16 self-start border-r border-slate-200 pr-5 pt-4 dark:border-slate-800 max-lg:hidden">
-        <div>
-          <div className="mb-3 flex items-center gap-2 px-2">
-            <Filter size={17} className="text-slate-500 dark:text-slate-400" />
-            <h2 className="text-sm font-bold text-slate-950 dark:text-white">
-              Browse topics
-            </h2>
-          </div>
-          <div className="grid gap-1 max-lg:grid-cols-2 max-sm:grid-cols-1">
-            {[
-              "All",
-              "Freshwater",
-              "Saltwater",
-              "Aquascaping",
-              "Planted Tank",
-              "Fish Disease",
-              "Equipment",
-              "DIY",
-              "Shrimp",
-              "Breeding",
-              "Beginner Help",
-            ].map((category) => (
-              <button
-                key={category}
-                className={[
-                  "flex h-10 items-center rounded-lg px-3 text-left text-sm font-medium transition",
-                  category === selectedCategory
-                    ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white",
-                ].join(" ")}
-                onClick={() => updateCategory(category)}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-6 border-t border-slate-200 px-2 pt-5 dark:border-slate-800">
-          <h2 className="text-sm font-bold text-slate-950 dark:text-white">
-            Quick links
-          </h2>
-          <div className="mt-3 grid gap-1">
-            <Link
-              className="flex h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900"
-              to="/bookmarks"
+    <main className="mx-auto w-full max-w-[1440px] min-w-0 px-4 pb-24 pt-5 sm:px-6 md:pb-8 lg:px-8">
+      <div
+        className="mb-4 flex items-center gap-2 overflow-x-auto pb-1 lg:hidden"
+        aria-label="Mobile topic filters"
+      >
+        {topicItems.slice(0, 5).map((category) => {
+          const isActive = category === selectedCategory;
+          return (
+            <button
+              key={category}
+              type="button"
+              onClick={() => updateCategory(category)}
+              className={[
+                "min-h-11 shrink-0 rounded-xl px-4 text-sm font-bold transition-all duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2",
+                isActive
+                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-950"
+                  : "border border-slate-200 bg-white text-slate-600 hover:border-teal-300 hover:text-teal-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300",
+              ].join(" ")}
             >
-              <BookOpen size={17} />
-              Saved guides
-            </Link>
-            <Link
-              className="flex h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900"
-              to="/following"
-            >
-              <Users size={17} />
-              Following
-            </Link>
-            <Link
-              className="flex h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900"
-              to="/profile"
-            >
-              <UserRound size={17} />
-              My profile
-            </Link>
-          </div>
-        </div>
-      </aside>
+              {category === "All" ? "All topics" : category}
+            </button>
+          );
+        })}
+      </div>
 
-      <section className="mx-auto grid w-full max-w-180 content-start gap-4 px-5 pt-4 max-lg:px-0">
-        <div className="rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-950">
-          <div className="grid grid-cols-[40px_1fr_auto] items-center gap-3 max-sm:grid-cols-[40px_1fr]">
-            <img
-              className="h-10 w-10 rounded-full object-cover"
-              src={getAvatarUrl(currentUser?.avatar)}
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src = "/default-avatar.png";
-              }}
-              alt={currentUser?.name || "User Avatar"}
-            />
-            <Link
-              className="flex h-11 items-center rounded-lg bg-slate-100 px-4 text-left text-sm font-medium text-slate-500 transition hover:bg-slate-200 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800"
-              to="/create-post"
-            >
-              Ask a question or share your aquarium
-            </Link>
-            <Link
-              className="inline-flex h-11 min-w-32 items-center justify-center gap-2 rounded-lg bg-teal-700 px-4 text-sm font-bold text-white transition hover:bg-teal-800 max-sm:col-span-2"
-              to="/create-post"
-            >
-              <MessageSquarePlus size={18} />
-              Post
-            </Link>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between gap-4 px-1">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-              Feed
-            </p>
-            <h1 className="text-xl font-bold text-slate-950 dark:text-white">
-              {selectedCategory === "All"
-                ? "Latest discussions"
-                : selectedCategory}
-            </h1>
-          </div>
-          <span className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300">
-            {posts.length} posts
-          </span>
-        </div>
-
-        {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-teal-700 border-t-transparent" />
-          </div>
-        ) : error ? (
-          <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-700 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-200">
-            {error}
-          </div>
-        ) : posts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-slate-500">
-            <p className="text-sm font-semibold">No posts found.</p>
-          </div>
-        ) : (
-          posts.map((post) => <PostCard key={post.id} post={post} />)
-        )}
-      </section>
-
-      <aside className="sticky top-16 grid self-start gap-6 border-l border-slate-200 pl-5 pt-4 dark:border-slate-800 max-lg:static max-lg:grid-cols-3 max-lg:border-l-0 max-lg:border-t max-lg:pl-0 max-lg:pt-5 max-md:grid-cols-1">
-        {!sidebarLoading && currentUser && (
-          <div>
-            <div className="flex items-center gap-3">
-              <img
-                className="h-12 w-12 rounded-full object-cover"
-                src={getAvatarUrl(currentUser.avatar)}
-                onError={(e) => {
-                  e.currentTarget.onerror = null;
-                  e.currentTarget.src = "/default-avatar.png";
-                }}
-                alt={currentUser?.name || "User Avatar"}
-              />
-              <div>
-                <h2 className="font-bold text-slate-950 dark:text-white">
-                  {currentUser.name}
-                </h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  @{currentUser.name?.replace(/\s/g, "_").toLowerCase()}
-                </p>
-              </div>
+      <div className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-[220px_minmax(0,1fr)_260px] xl:grid-cols-[230px_minmax(0,720px)_280px]">
+        <aside
+          className="hidden min-w-0 self-start lg:sticky lg:top-[92px] lg:block"
+          aria-label="Browse topics"
+        >
+          <div className="border-b border-slate-200 pb-5 dark:border-slate-800">
+            <div className="mb-3 flex items-center justify-between px-1">
+              <h2 className="font-display text-sm font-bold text-slate-950 dark:text-white">
+                Browse topics
+              </h2>
+              <SlidersHorizontal size={16} className="text-slate-400" aria-hidden="true" />
             </div>
-            <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-              <div className="rounded-lg bg-slate-100 p-2 dark:bg-slate-900">
-                <strong className="block text-sm font-bold text-slate-950 dark:text-white">
-                  {userPostsCount}
-                </strong>
-                <span className="text-xs text-slate-500 dark:text-slate-400">
-                  Posts
-                </span>
-              </div>
-              <div className="rounded-lg bg-slate-100 p-2 dark:bg-slate-900">
-                <strong className="block text-sm font-bold text-slate-950 dark:text-white">
-                  {userFollowersCount}
-                </strong>
-                <span className="text-xs text-slate-500 dark:text-slate-400">
-                  Followers
-                </span>
-              </div>
-              <div className="rounded-lg bg-slate-100 p-2 dark:bg-slate-900">
-                <strong className="block text-sm font-bold text-slate-950 dark:text-white">
-                  {userFollowingCount}
-                </strong>
-                <span className="text-xs text-slate-500 dark:text-slate-400">
-                  Following
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {sidebarLoading && (
-          <div className="flex items-center justify-center py-8">
-            <div className="h-6 w-6 animate-spin rounded-full border-4 border-teal-700 border-t-transparent" />
-          </div>
-        )}
-
-        <div className="border-t border-slate-200 pt-5 dark:border-slate-800">
-          <div className="mb-3 flex items-center gap-2">
-            <ShieldCheck size={18} className="text-teal-700" />
-            <h2 className="font-bold text-slate-950 dark:text-white">
-              About AquaHub
-            </h2>
-          </div>
-          <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">
-            A focused aquarium forum for beginner help, tank journals, disease
-            questions, equipment advice, and breeding logs.
-          </p>
-        </div>
-
-        <div className="border-t border-slate-200 pt-5 dark:border-slate-800">
-          <div className="mb-3 flex items-center gap-2">
-            <Award size={18} className="text-amber-500" />
-            <h2 className="font-bold text-slate-950 dark:text-white">
-              Top contributors
-            </h2>
-          </div>
-          {sidebarLoading ? (
-            <div className="flex items-center justify-center py-4">
-              <div className="h-5 w-5 animate-spin rounded-full border-4 border-teal-700 border-t-transparent" />
-            </div>
-          ) : topContributors.length === 0 ? (
-            <p className="text-sm text-slate-500">No contributors yet.</p>
-          ) : (
-            <div className="grid gap-3 text-sm">
-              {topContributors.map((contributor) => {
-                const activityScore = (contributor.posts_count ?? 0) + (contributor.comments_count ?? 0);
-
+            <div className="grid gap-1">
+              {topicItems.map((category) => {
+                const isActive = category === selectedCategory;
                 return (
-                  <div
-                    className="flex items-center justify-between"
-                    key={contributor.id}
+                  <button
+                    key={category}
+                    type="button"
+                    onClick={() => updateCategory(category)}
+                    className={[
+                      "flex min-h-11 items-center justify-between rounded-xl px-3 text-left text-sm transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600",
+                      isActive
+                        ? "bg-teal-50 font-bold text-teal-800 dark:bg-teal-950/50 dark:text-teal-200"
+                        : "font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white",
+                    ].join(" ")}
                   >
-                    <div className="flex items-center gap-2">
-                      <img
-                        className="h-7 w-7 rounded-full object-cover"
-                        src={getAvatarUrl(contributor.avatar)}
-                        onError={(e) => {
-                          e.currentTarget.onerror = null;
-                          e.currentTarget.src = "/default-avatar.png";
-                        }}
-                        alt={contributor.name || "Contributor Avatar"}
-                      />
-                      <span className="font-medium text-slate-700 dark:text-slate-300">
-                        {contributor.name}
+                    <span>{category === "All" ? "All topics" : category}</span>
+                    {isActive && category === "All" && (
+                      <span className="rounded-md bg-white px-2 py-1 text-[11px] font-bold text-teal-700 dark:bg-slate-900 dark:text-teal-300">
+                        {posts.length}
                       </span>
-                    </div>
-                    <span className="rounded-md bg-slate-100 px-2 py-1 text-xs font-bold text-slate-600 dark:bg-slate-900 dark:text-slate-300">
-                      {activityScore} pts
-                    </span>
-                  </div>
+                    )}
+                  </button>
                 );
               })}
             </div>
+          </div>
+
+          <div className="pt-5">
+            <h2 className="px-1 font-display text-sm font-bold text-slate-950 dark:text-white">
+              Quick links
+            </h2>
+            <div className="mt-2 grid gap-1">
+              <Link
+                className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-slate-600 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white"
+                to="/bookmarks"
+              >
+                <Bookmark size={16} className="text-teal-700 dark:text-teal-300" aria-hidden="true" />
+                Saved guides
+              </Link>
+              <Link
+                className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-slate-600 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white"
+                to="/following"
+              >
+                <Users size={16} className="text-teal-700 dark:text-teal-300" aria-hidden="true" />
+                Following
+              </Link>
+              <Link
+                className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-slate-600 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white"
+                to="/profile"
+              >
+                <UserRound size={16} className="text-teal-700 dark:text-teal-300" aria-hidden="true" />
+                My profile
+              </Link>
+            </div>
+          </div>
+        </aside>
+
+        <section className="min-w-0 space-y-4" aria-label="AquaHub feed">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-950">
+            <div className="flex min-w-0 items-center gap-3">
+              <Avatar
+                src={currentUser?.avatar}
+                alt={`${currentUser?.name || "Your"} avatar`}
+                sizeClass="h-11 w-11"
+              />
+              <Link
+                className="flex min-h-11 min-w-0 flex-1 items-center rounded-xl bg-slate-50 px-4 text-sm font-medium text-slate-500 transition-colors duration-200 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800"
+                to="/create-post"
+              >
+                <span className="truncate">Ask a question or share your aquarium…</span>
+              </Link>
+              <Link
+                className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-teal-700 px-4 text-sm font-bold text-white shadow-sm shadow-teal-700/20 transition-all duration-200 hover:bg-teal-800 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 max-sm:px-3"
+                to="/create-post"
+              >
+                <MessageSquarePlus size={16} aria-hidden="true" />
+                <span className="hidden sm:inline">Create post</span>
+                <span className="sm:hidden">Post</span>
+              </Link>
+            </div>
+          </div>
+
+          <div className="flex items-end justify-between gap-4 px-1">
+            <div className="min-w-0">
+              <p className="text-xs font-bold uppercase tracking-[0.12em] text-teal-700 dark:text-teal-300">
+                AquaHub community
+              </p>
+              <h1 className="break-words font-display text-2xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-3xl">
+                Latest conversations
+              </h1>
+              {query && (
+                <p className="mt-1 truncate text-sm text-slate-500 dark:text-slate-400">
+                  Showing results for “{query}”
+                </p>
+              )}
+            </div>
+            <span className="shrink-0 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-500 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400">
+              {posts.length} this week
+            </span>
+          </div>
+
+          {error && (
+            <div
+              className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900/70 dark:bg-amber-950/40 dark:text-amber-100"
+              role="alert"
+              aria-live="polite"
+            >
+              <AlertTriangle size={17} className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-300" aria-hidden="true" />
+              <div className="min-w-0 flex-1">
+                <p className="font-bold">Some community updates are delayed.</p>
+                <p className="mt-0.5 break-words text-xs text-amber-800/80 dark:text-amber-200/80">
+                  {error} Your feed will keep the latest available posts while we reconnect.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={fetchPosts}
+                className="min-h-11 shrink-0 rounded-lg px-2 text-xs font-bold text-amber-800 underline decoration-amber-400 underline-offset-4 transition hover:text-amber-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 dark:text-amber-200 dark:hover:text-white"
+              >
+                Retry
+              </button>
+            </div>
           )}
-        </div>
-      </aside>
-    </div>
+
+          {loading ? (
+            <div className="grid gap-4" aria-label="Loading feed">
+              <FeedSkeleton />
+              <FeedSkeleton />
+            </div>
+          ) : posts.length === 0 ? (
+            <FeedEmptyState query={query} category={selectedCategory} onReset={resetFilters} />
+          ) : (
+            posts.map((post) => <PostCard key={post.id} post={post} />)
+          )}
+        </section>
+
+        <aside className="min-w-0 space-y-4 self-start lg:sticky lg:top-[92px]" aria-label="Community context">
+          <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-950">
+            <div className="flex items-center gap-3">
+              <Avatar
+                src={currentUser?.avatar}
+                alt={`${currentUser?.name || "Your"} profile`}
+                sizeClass="h-12 w-12"
+              />
+              <div className="min-w-0">
+                <h2 className="truncate font-display text-sm font-bold text-slate-950 dark:text-white">
+                  {currentUser?.name || "Your profile"}
+                </h2>
+                <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+                  @{currentUser?.name?.replace(/\s/g, "_").toLowerCase() || "aquahub_member"}
+                  {currentUser?.location ? ` · ${currentUser.location}` : ""}
+                </p>
+              </div>
+            </div>
+            <div className="mt-4 grid grid-cols-3 divide-x divide-slate-200 rounded-xl bg-slate-50 py-3 text-center dark:divide-slate-800 dark:bg-slate-900">
+              <div>
+                <strong className="block font-display text-lg font-extrabold text-slate-950 dark:text-white">
+                  {userPostsCount}
+                </strong>
+                <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Posts</span>
+              </div>
+              <div>
+                <strong className="block font-display text-lg font-extrabold text-slate-950 dark:text-white">
+                  {userFollowersCount}
+                </strong>
+                <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Followers</span>
+              </div>
+              <div>
+                <strong className="block font-display text-lg font-extrabold text-slate-950 dark:text-white">
+                  {userFollowingCount}
+                </strong>
+                <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Following</span>
+              </div>
+            </div>
+            <Link
+              className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-slate-200 px-3 text-sm font-bold text-slate-700 transition-colors duration-200 hover:border-teal-300 hover:bg-teal-50 hover:text-teal-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:border-slate-800 dark:text-slate-200 dark:hover:border-teal-700 dark:hover:bg-teal-950/40 dark:hover:text-teal-200"
+              to="/profile"
+            >
+              View profile
+            </Link>
+          </section>
+
+          <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-950">
+            <div className="flex items-center justify-between">
+              <h2 className="font-display text-sm font-bold text-slate-950 dark:text-white">Community pulse</h2>
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-400">
+                <span className={`h-2 w-2 rounded-full ${sidebarLoading ? "bg-amber-400" : "bg-emerald-500"}`} />
+                {sidebarLoading ? "Syncing" : "Synced"}
+              </span>
+            </div>
+            <div className="mt-3">
+              <FeedSkeleton variant="pulse" />
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-950">
+            <div className="flex items-center gap-2">
+              <Bookmark size={16} className="text-teal-700 dark:text-teal-300" aria-hidden="true" />
+              <h2 className="font-display text-sm font-bold text-slate-950 dark:text-white">Saved for later</h2>
+            </div>
+            {savedPostsCount === 0 ? (
+              <div className="mt-4 rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
+                <p className="text-sm font-bold text-slate-800 dark:text-slate-200">No saved posts yet</p>
+                <p className="mt-1 break-words text-xs leading-5 text-slate-500 dark:text-slate-400">
+                  Bookmark a helpful answer and it will appear here for your next water change.
+                </p>
+                <Link
+                  className="mt-3 inline-flex min-h-11 items-center gap-2 text-xs font-bold text-teal-700 underline decoration-teal-300 underline-offset-4 transition hover:text-teal-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:text-teal-300 dark:hover:text-teal-100"
+                  to="/"
+                >
+                  Browse latest conversations
+                  <ArrowUpRight size={14} aria-hidden="true" />
+                </Link>
+              </div>
+            ) : (
+              <div className="mt-4 rounded-xl bg-teal-50 p-4 dark:bg-teal-950/40">
+                <p className="text-sm font-bold text-teal-900 dark:text-teal-100">
+                  {savedPostsCount} saved {savedPostsCount === 1 ? "post" : "posts"} in this feed
+                </p>
+                <Link
+                  className="mt-3 inline-flex min-h-11 items-center gap-2 text-xs font-bold text-teal-700 underline decoration-teal-300 underline-offset-4 dark:text-teal-300"
+                  to="/bookmarks"
+                >
+                  Open saved guides
+                  <ArrowUpRight size={14} aria-hidden="true" />
+                </Link>
+              </div>
+            )}
+          </section>
+
+          <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-950">
+            <div className="flex items-center gap-2">
+              <Award size={16} className="text-teal-700 dark:text-teal-300" aria-hidden="true" />
+              <h2 className="font-display text-sm font-bold text-slate-950 dark:text-white">Top contributors</h2>
+            </div>
+            {sidebarLoading ? (
+              <div className="mt-4">
+                <FeedSkeleton variant="pulse" />
+              </div>
+            ) : topContributors.length === 0 ? (
+              <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">No contributors yet.</p>
+            ) : (
+              <div className="mt-4 grid gap-3">
+                {topContributors.slice(0, 4).map((contributor) => {
+                  const activityScore = (contributor.posts_count ?? 0) + (contributor.comments_count ?? 0);
+                  return (
+                    <div className="flex min-w-0 items-center justify-between gap-3" key={contributor.id}>
+                      <div className="flex min-w-0 items-center gap-2">
+                        <Avatar
+                          src={contributor.avatar}
+                          alt={`${contributor.name || "Contributor"} avatar`}
+                          sizeClass="h-8 w-8"
+                          shapeClass="rounded-lg"
+                        />
+                        <span className="truncate text-sm font-medium text-slate-700 dark:text-slate-200">
+                          {contributor.name}
+                        </span>
+                      </div>
+                      <span className="shrink-0 rounded-lg bg-teal-50 px-2 py-1 text-[11px] font-bold text-teal-800 dark:bg-teal-950/60 dark:text-teal-200">
+                        {activityScore} pts
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+
+          <section className="border-t border-slate-200 pt-4 dark:border-slate-800">
+            <div className="flex items-center gap-2">
+              <Info size={16} className="text-slate-400" aria-hidden="true" />
+              <h2 className="font-display text-sm font-bold text-slate-950 dark:text-white">About AquaHub</h2>
+            </div>
+            <p className="mt-2 break-words text-xs leading-5 text-slate-500 dark:text-slate-400">
+              A focused aquarium forum for beginner help, tank journals, disease questions, and equipment advice.
+            </p>
+          </section>
+
+          <div className="hidden items-center gap-2 text-xs text-slate-400 xl:flex">
+            <Filter size={14} aria-hidden="true" />
+            <span>Use topics to tune your feed.</span>
+          </div>
+        </aside>
+      </div>
+    </main>
   );
 };
 

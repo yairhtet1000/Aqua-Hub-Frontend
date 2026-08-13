@@ -10,7 +10,7 @@ export const getImageUrl = (path) => {
 };
 
 export const getAvatarUrl = (avatar) => {
-  if (!avatar) return "/default-avatar.png";
+  if (!avatar || typeof avatar !== "string") return "/default-avatar.png";
 
   if (avatar.startsWith("http://") || avatar.startsWith("https://")) {
     return avatar;

@@ -1,9 +1,9 @@
-import { useEffect, useState, useCallback } from "react";
-import { UsersRound, UserCheck, UserPlus } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { UserCheck, UserPlus, UsersRound } from "lucide-react";
 import api from "../api/axios";
-import { useAuth } from "../hooks";
-import { useToast } from "../hooks";
-import { getImageUrl } from "../utils/imageUrl";
+import Avatar from "../components/Avatar";
+import { InlineLoading, PageEmptyState } from "../components/FeedStates";
+import { useAuth, useToast } from "../hooks";
 
 const Following = () => {
   const { user: authUser } = useAuth();
@@ -12,14 +12,15 @@ const Following = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(null);
+  const authUserId = authUser?.id;
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
       const endpoint =
         activeTab === "following"
-          ? `/users/${authUser?.id}/following`
-          : `/users/${authUser?.id}/followers`;
+          ? `/users/${authUserId}/following`
+          : `/users/${authUserId}/followers`;
       const { data } = await api.get(endpoint, { params: { page: 1 } });
       setUsers(data.data || []);
     } catch {
@@ -27,7 +28,7 @@ const Following = () => {
     } finally {
       setLoading(false);
     }
-  }, [activeTab, authUser?.id, addToast]);
+  }, [activeTab, authUserId, addToast]);
 
   useEffect(() => {
     fetchUsers();
@@ -38,9 +39,9 @@ const Following = () => {
     const previousUsers = [...users];
     const optimisticFollowing = !targetUser.is_following;
 
-    setUsers((prev) =>
-      prev.map((u) =>
-        u.id === targetUser.id ? { ...u, is_following: optimisticFollowing } : u,
+    setUsers((previous) =>
+      previous.map((user) =>
+        user.id === targetUser.id ? { ...user, is_following: optimisticFollowing } : user,
       ),
     );
     setActionLoading(targetUser.id);
@@ -50,9 +51,9 @@ const Following = () => {
         ? `/users/${targetUser.id}/follow`
         : `/users/${targetUser.id}/unfollow`;
       const { data } = await api[optimisticFollowing ? "post" : "delete"](endpoint);
-      setUsers((prev) =>
-        prev.map((u) =>
-          u.id === targetUser.id ? { ...u, is_following: data.is_following } : u,
+      setUsers((previous) =>
+        previous.map((user) =>
+          user.id === targetUser.id ? { ...user, is_following: data.is_following } : user,
         ),
       );
       addToast(data.message, "success");
@@ -70,31 +71,31 @@ const Following = () => {
   ];
 
   return (
-    <section className="mx-auto grid w-[min(860px,100%)] gap-5">
-      <div className="rounded-4xl bg-slate-950 p-7 text-white shadow-2xl shadow-teal-950/20 dark:bg-slate-900">
-        <span className="mb-3 inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.16em] text-cyan-200">
-          <UsersRound size={17} />
-          Community network
-        </span>
-        <div className="flex items-end justify-between gap-4">
-          <h1 className="text-4xl font-black tracking-tight">Network</h1>
-        </div>
-      </div>
+    <section className="mx-auto grid w-full max-w-[860px] gap-5 px-4 sm:px-6 lg:px-8">
+      <header className="border-b border-slate-200 pb-4 dark:border-slate-800">
+        <p className="text-xs font-bold uppercase tracking-[0.12em] text-teal-700 dark:text-teal-300">Community network</p>
+        <h1 className="mt-1 font-display text-2xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-3xl">Network</h1>
+        <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">Keep up with the aquarists and tank journals you trust.</p>
+      </header>
 
-      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800">
+      <div className="flex items-center gap-2 overflow-x-auto border-b border-slate-200 dark:border-slate-800" role="tablist" aria-label="Network views">
         {tabs.map((tab) => {
           const Icon = tab.icon;
+          const isActive = activeTab === tab.key;
           return (
             <button
               key={tab.key}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
               onClick={() => setActiveTab(tab.key)}
-              className={`inline-flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-black transition ${
-                activeTab === tab.key
+              className={`inline-flex min-h-11 shrink-0 items-center gap-2 border-b-2 px-4 text-sm font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 ${
+                isActive
                   ? "border-teal-700 text-teal-700 dark:text-teal-300"
                   : "border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
               }`}
             >
-              <Icon size={17} />
+              <Icon size={16} aria-hidden="true" />
               {tab.label}
             </button>
           );
@@ -102,54 +103,47 @@ const Following = () => {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-teal-700 border-t-transparent" />
-        </div>
+        <InlineLoading label={`Loading ${activeTab}`} />
       ) : users.length === 0 ? (
-        <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm font-semibold text-slate-500 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400">
-          No {activeTab} yet.
-        </div>
+        <PageEmptyState
+          Icon={UsersRound}
+          title={`No ${activeTab} yet`}
+          description="Follow an aquarist from the feed to build a useful community network."
+          actionLabel="Browse feed"
+          actionTo="/"
+        />
       ) : (
         <div className="grid gap-3">
-          {users.map((u) => (
+          {users.map((user) => (
             <div
-              key={u.id}
-              className="grid grid-cols-[56px_1fr_auto] items-center gap-4 rounded-3xl border border-slate-200 bg-white p-4 shadow-xl shadow-slate-950/5 transition hover:-translate-y-0.5 hover:shadow-2xl dark:border-slate-800 dark:bg-slate-950 max-sm:grid-cols-[56px_1fr]"
+              key={user.id}
+              className="grid grid-cols-[48px_minmax(0,1fr)] items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-900/5 transition-shadow hover:shadow-md dark:border-slate-800 dark:bg-slate-950 sm:grid-cols-[48px_minmax(0,1fr)_auto]"
             >
-              <img
-                className="h-14 w-14 rounded-full object-cover"
-                src={getImageUrl(u.avatar) || "https://via.placeholder.com/56"}
-                alt=""
-              />
+              <Avatar src={user.avatar} alt={`${user.name || "User"} avatar`} sizeClass="h-12 w-12" shapeClass="rounded-xl" />
               <div className="min-w-0">
-                <strong className="block text-lg font-black text-slate-950 dark:text-white">
-                  {u.name}
-                </strong>
-                <p className="line-clamp-2 leading-6 text-slate-600 dark:text-slate-300">{u.bio}</p>
+                <strong className="block truncate font-display text-base font-bold text-slate-950 dark:text-white">{user.name}</strong>
+                <p className="mt-1 break-words text-sm leading-6 text-slate-600 dark:text-slate-300">{user.bio || "AquaHub community member"}</p>
               </div>
-              {u.id !== authUser?.id && (
+              {user.id !== authUser?.id && (
                 <button
-                  onClick={() => handleFollowToggle(u)}
-                  disabled={actionLoading === u.id}
-                  className={`inline-flex h-10 min-w-32 items-center justify-center gap-2 rounded-full px-4 text-sm font-black transition disabled:opacity-60 ${
-                    u.is_following
-                      ? "border border-slate-200 bg-white text-slate-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
-                      : "bg-teal-700 text-white shadow-lg shadow-teal-900/20"
+                  type="button"
+                  onClick={() => handleFollowToggle(user)}
+                  disabled={actionLoading === user.id}
+                  aria-pressed={user.is_following}
+                  className={`col-span-2 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-bold transition-all duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:col-span-1 ${
+                    user.is_following
+                      ? "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-900"
+                      : "bg-teal-700 text-white shadow-sm shadow-teal-700/20 hover:bg-teal-800"
                   }`}
                 >
-                  {actionLoading === u.id ? (
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  ) : u.is_following ? (
+                  {actionLoading === user.id ? (
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  ) : user.is_following ? (
                     "Following"
-                  ) : activeTab === "followers" ? (
-                    <>
-                      <UserPlus size={17} />
-                      Follow Back
-                    </>
                   ) : (
                     <>
-                      <UserPlus size={17} />
-                      Follow
+                      <UserPlus size={16} aria-hidden="true" />
+                      {activeTab === "followers" ? "Follow back" : "Follow"}
                     </>
                   )}
                 </button>

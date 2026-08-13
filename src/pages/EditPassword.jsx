@@ -1,31 +1,28 @@
 import { useState } from "react";
 import { KeyRound, Loader2 } from "lucide-react";
-import { useAuth, useToast } from "../hooks";
+import { Link } from "react-router-dom";
 import api from "../api/axios";
+import { useAuth, useToast } from "../hooks";
 
 const fieldClass =
-  "h-12 rounded-2xl border border-slate-200 bg-white px-4 text-slate-800 shadow-sm focus:outline-teal-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100";
-const labelClass =
-  "grid gap-2 text-sm font-black text-slate-700 dark:text-slate-200";
-
+  "min-h-11 rounded-xl border border-slate-200 bg-white px-4 text-slate-800 shadow-sm transition focus:outline-none focus:ring-2 focus:ring-teal-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100";
+const labelClass = "grid gap-2 text-sm font-bold text-slate-700 dark:text-slate-200";
 const tabBase =
-  "inline-flex h-11 min-w-36 items-center justify-center gap-2 rounded-full px-5 text-sm font-black transition";
-const tabActive =
-  "bg-teal-700 text-white shadow-lg shadow-teal-900/20";
+  "inline-flex min-h-11 min-w-36 items-center justify-center gap-2 rounded-xl px-5 text-sm font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2";
+const tabActive = "bg-slate-900 text-white dark:bg-white dark:text-slate-950";
 const tabInactive =
-  "border border-slate-200 bg-white text-slate-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200";
+  "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-900";
 
 const EditPassword = () => {
   const { updateUser } = useAuth();
   const { addToast } = useToast();
-
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setSaving(true);
     try {
       const response = await api.post("/user/password", {
@@ -33,9 +30,7 @@ const EditPassword = () => {
         password: newPassword,
         password_confirmation: confirmPassword,
       });
-
-      const updatedUser = response.data.user || response.data;
-      updateUser(updatedUser);
+      updateUser(response.data.user || response.data);
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -48,76 +43,33 @@ const EditPassword = () => {
   };
 
   return (
-    <div className="mx-auto grid w-[min(1000px,100%)] gap-5">
-      <div className="rounded-4xl bg-slate-950 p-7 text-white shadow-2xl shadow-teal-950/20 dark:bg-slate-900">
-        <span className="mb-3 block text-sm font-black uppercase tracking-[0.16em] text-cyan-200">
-          Account settings
-        </span>
-        <h1 className="text-4xl font-black tracking-tight">Change password</h1>
+    <div className="mx-auto grid w-full max-w-[1000px] gap-5 px-4 sm:px-6 lg:px-8">
+      <header className="border-b border-slate-200 pb-4 dark:border-slate-800">
+        <p className="text-xs font-bold uppercase tracking-[0.12em] text-teal-700 dark:text-teal-300">Account settings</p>
+        <h1 className="mt-1 font-display text-2xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-3xl">Change password</h1>
+        <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">Use a strong password to keep your AquaHub account secure.</p>
+      </header>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <Link className={`${tabBase} ${tabInactive}`} to="/settings/edit-profile">Edit profile</Link>
+        <button type="button" className={`${tabBase} ${tabActive}`} disabled>Change password</button>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <a
-          href="/settings/edit-profile"
-          className={`${tabBase} ${tabInactive}`}
-        >
-          Edit Profile
-        </a>
-        <button
-          type="button"
-          className={`${tabBase} ${tabActive}`}
-          disabled
-        >
-          Change Password
-        </button>
-      </div>
-
-      <form
-        className="grid gap-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-950/5 dark:border-slate-800 dark:bg-slate-950"
-        onSubmit={handleSubmit}
-      >
+      <form className="grid gap-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-950 sm:p-6" onSubmit={handleSubmit}>
         <label className={labelClass}>
           Current password
-          <input
-            className={fieldClass}
-            type="password"
-            value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
-            required
-          />
+          <input className={fieldClass} type="password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} required />
         </label>
         <label className={labelClass}>
           New password
-          <input
-            className={fieldClass}
-            type="password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            required
-            minLength={8}
-          />
+          <input className={fieldClass} type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} required minLength={8} />
         </label>
         <label className={labelClass}>
           Confirm new password
-          <input
-            className={fieldClass}
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-            minLength={8}
-          />
+          <input className={fieldClass} type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} required minLength={8} />
         </label>
-        <button
-          className="inline-flex h-12 w-48 items-center justify-center gap-2 rounded-full bg-teal-700 px-5 text-sm font-black text-white shadow-lg shadow-teal-900/20"
-          type="submit"
-          disabled={saving}
-        >
-          {saving ? (
-            <Loader2 size={18} className="animate-spin" />
-          ) : (
-            <KeyRound size={18} />
-          )}
+        <button className="inline-flex min-h-11 w-48 items-center justify-center gap-2 rounded-xl bg-teal-700 px-5 text-sm font-bold text-white shadow-sm shadow-teal-700/20 transition hover:bg-teal-800 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60" type="submit" disabled={saving}>
+          {saving ? <Loader2 size={17} className="animate-spin" aria-hidden="true" /> : <KeyRound size={17} aria-hidden="true" />}
           {saving ? "Updating..." : "Update password"}
         </button>
       </form>
