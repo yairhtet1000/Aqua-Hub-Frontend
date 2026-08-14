@@ -1,16 +1,46 @@
-# React + Vite
+# AquaHub - React Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+AquaHub is a modern React SPA tailored for fish keepers and aquarists. It features interactive discussions, custom category filtering (Freshwater, Saltwater, Aquascaping), real-time post bookmarking, user follow/unfollow interactions, custom profile management, and light/dark theme support.
 
-Currently, two official plugins are available:
+- **Backend Repository:** [AquaHub Backend](https://github.com/yairhtet1000/Aqua-Hub-Backend.git)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## Prerequisites & Requirements
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Node.js:** `^18.x` or `^20.x`
+- **NPM:** `^9.x` or higher
+- **Backend API Server:** Ensure the Laravel backend server is running at `http://127.0.0.1:8000`.
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Installation & Setup Instructions
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/yairhtet1000/Aqua-Hub-Frontend.git
+   cd Aqua-Hub-Frontend
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Configure Environment Variables:**
+   - Create a `.env` file in the project root:
+     ```env
+     VITE_API_BASE_URL=http://127.0.0.1:8000/api
+     ```
+
+4. **Run the Development Server:**
+   ```bash
+   npm run dev
+   ```
+
+   The frontend app will launch at `http://localhost:5173`.
+
+5. **Build for Production:**
+   ```bash
+   npm run build
+   ```

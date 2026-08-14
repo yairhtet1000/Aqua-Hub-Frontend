@@ -95,7 +95,7 @@ const AppRoutes = () => {
             <Route path="users/:id/edit" element={<AdminUserEdit />} />
             <Route path="categories" element={<CategoryManager />} />
             <Route path="profile" element={<UserProfile own />} />
-            <Route path="profile/edit-profile" element={<Settings section="profile" onLogout={logout} basePath="/admin/profile" />} />
+            <Route path="profile/edit-profile" element={<Settings section="profile" basePath="/admin/profile" />} />
             <Route path="profile/edit-password" element={<EditPassword />} />
           </Route>
           <Route

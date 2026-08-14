@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { KeyRound, Loader2 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import api from "../api/axios";
 import { useAuth, useToast } from "../hooks";
 
@@ -17,6 +17,11 @@ const tabInactive =
 const EditPassword = () => {
   const { updateUser } = useAuth();
   const { addToast } = useToast();
+  const location = useLocation();
+  const isAdmin = location.pathname.startsWith("/admin");
+  const editProfilePath = isAdmin
+    ? "/admin/profile/edit-profile"
+    : "/settings/edit-profile";
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -36,8 +41,13 @@ const EditPassword = () => {
       setNewPassword("");
       setConfirmPassword("");
       addToast("Password updated successfully.", "success");
-    } catch {
-      addToast("Failed to update password.", "error");
+    } catch (error) {
+      const apiErrorMessage =
+        error.response?.data?.errors?.current_password?.[0] ||
+        error.response?.data?.errors?.password?.[0] ||
+        error.response?.data?.message ||
+        "Failed to update password. Please check your credentials.";
+      addToast(apiErrorMessage, "error");
     } finally {
       setSaving(false);
     }
@@ -60,7 +70,7 @@ const EditPassword = () => {
       <div className="flex flex-wrap items-center gap-2">
         <Link
           className={`${tabBase} ${tabInactive}`}
-          to="/settings/edit-profile"
+          to={editProfilePath}
         >
           Edit profile
         </Link>
