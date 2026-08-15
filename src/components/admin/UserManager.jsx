@@ -66,7 +66,8 @@ const UserManager = () => {
           u.id === userId
             ? {
                 ...u,
-                role: roles.find((r) => r.id === parseInt(newRoleId, 10)) || u.role,
+                role:
+                  roles.find((r) => r.id === parseInt(newRoleId, 10)) || u.role,
               }
             : u,
         ),
@@ -84,7 +85,8 @@ const UserManager = () => {
       Admin: "bg-rose-50 text-rose-700 dark:bg-rose-950 dark:text-rose-200",
       Moderator:
         "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-200",
-      Member: "bg-slate-100 text-slate-600 dark:bg-slate-900 dark:text-slate-300",
+      Member:
+        "bg-slate-100 text-slate-600 dark:bg-slate-900 dark:text-slate-300",
     };
     return (
       <span
@@ -180,50 +182,48 @@ const UserManager = () => {
                     <td className="px-6 py-4 text-slate-600 dark:text-slate-300">
                       {u.email}
                     </td>
-                    <td className="px-6 py-4">
-                      {getRoleBadge(u.role?.name)}
-                    </td>
+                    <td className="px-6 py-4">{getRoleBadge(u.role?.name)}</td>
                     <td className="px-6 py-4 text-slate-500 dark:text-slate-400">
                       {u.created_at
                         ? new Date(u.created_at).toLocaleDateString()
                         : "—"}
                     </td>
-                     <td className="px-6 py-4">
-                       <div className="flex items-center gap-2">
-                         <button
-                           onClick={() => navigate(`/admin/users/${u.id}/edit`)}
-                           className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-900"
-                         >
-                           Edit
-                         </button>
-                         <div className="relative">
-                           <select
-                             value={u.role?.id || ""}
-                             onChange={(e) =>
-                               handleRoleChange(u.id, e.target.value)
-                             }
-                             disabled={updatingId === u.id}
-                             className="h-9 appearance-none rounded-lg border border-slate-200 bg-white pl-3 pr-8 text-xs font-bold text-slate-700 focus:outline-teal-700 disabled:opacity-60 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
-                           >
-                             {roles.map((role) => (
-                               <option key={role.id} value={role.id}>
-                                 {role.name}
-                               </option>
-                             ))}
-                           </select>
-                           <ChevronDown
-                             size={14}
-                             className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-slate-400"
-                           />
-                         </div>
-                         {updatingId === u.id && (
-                           <Loader2
-                             size={16}
-                             className="animate-spin text-teal-700"
-                           />
-                         )}
-                       </div>
-                     </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => navigate(`/admin/users/${u.id}/edit`)}
+                          className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-900"
+                        >
+                          Edit
+                        </button>
+                        <div className="relative">
+                          <select
+                            value={u.role?.id || ""}
+                            onChange={(e) =>
+                              handleRoleChange(u.id, e.target.value)
+                            }
+                            disabled={updatingId === u.id}
+                            className="h-9 appearance-none rounded-lg border border-slate-200 bg-white pl-3 pr-8 text-xs font-bold text-slate-700 focus:outline-teal-700 disabled:opacity-60 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
+                          >
+                            {roles.map((role) => (
+                              <option key={role.id} value={role.id}>
+                                {role.name}
+                              </option>
+                            ))}
+                          </select>
+                          <ChevronDown
+                            size={14}
+                            className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-slate-400"
+                          />
+                        </div>
+                        {updatingId === u.id && (
+                          <Loader2
+                            size={16}
+                            className="animate-spin text-teal-700"
+                          />
+                        )}
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>

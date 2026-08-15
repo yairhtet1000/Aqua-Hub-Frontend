@@ -45,7 +45,10 @@ const ReportModal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center p-4" role="presentation">
+    <div
+      className="fixed inset-0 z-50 grid place-items-center p-4"
+      role="presentation"
+    >
       <button
         type="button"
         className="absolute inset-0 cursor-default bg-slate-950/40 backdrop-blur-sm"
@@ -61,7 +64,10 @@ const ReportModal = ({
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Flag size={18} className="text-rose-600" aria-hidden="true" />
-            <h2 id="report-dialog-title" className="font-display text-lg font-bold text-slate-950 dark:text-white">
+            <h2
+              id="report-dialog-title"
+              className="font-display text-lg font-bold text-slate-950 dark:text-white"
+            >
               Report content
             </h2>
           </div>
@@ -76,11 +82,15 @@ const ReportModal = ({
         </div>
 
         <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
-          Help us keep AquaHub safe. Please describe why this content violates our guidelines.
+          Help us keep AquaHub safe. Please describe why this content violates
+          our guidelines.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-5 grid gap-4">
-          <label className="grid gap-2 text-sm font-bold text-slate-700 dark:text-slate-200" htmlFor="report-reason">
+          <label
+            className="grid gap-2 text-sm font-bold text-slate-700 dark:text-slate-200"
+            htmlFor="report-reason"
+          >
             Reason
             <textarea
               id="report-reason"
@@ -105,7 +115,11 @@ const ReportModal = ({
               disabled={submitting}
               className="inline-flex min-h-11 min-w-32 items-center justify-center gap-2 rounded-xl bg-rose-600 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-rose-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {submitting ? <Loader2 size={17} className="animate-spin" /> : <Flag size={16} aria-hidden="true" />}
+              {submitting ? (
+                <Loader2 size={17} className="animate-spin" />
+              ) : (
+                <Flag size={16} aria-hidden="true" />
+              )}
               {submitting ? "Submitting..." : "Submit report"}
             </button>
           </div>

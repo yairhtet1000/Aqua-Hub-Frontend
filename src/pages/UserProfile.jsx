@@ -1,5 +1,12 @@
 import { useEffect, useState } from "react";
-import { Calendar, Fish, LogOut, MapPin, PenSquare, UserPlus } from "lucide-react";
+import {
+  Calendar,
+  Fish,
+  LogOut,
+  MapPin,
+  PenSquare,
+  UserPlus,
+} from "lucide-react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import api from "../api/axios";
 import { useAuth, useToast } from "../hooks";

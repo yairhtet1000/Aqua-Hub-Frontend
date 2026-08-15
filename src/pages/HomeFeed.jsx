@@ -61,11 +61,12 @@ const HomeFeed = () => {
     const fetchSidebarData = async () => {
       setSidebarLoading(true);
 
-      const [userResult, contributorsResult, pulseResult] = await Promise.allSettled([
-        api.get("/user"),
-        api.get("/users/top-contributors"),
-        api.get("/community-pulse"),
-      ]);
+      const [userResult, contributorsResult, pulseResult] =
+        await Promise.allSettled([
+          api.get("/user"),
+          api.get("/users/top-contributors"),
+          api.get("/community-pulse"),
+        ]);
 
       if (userResult.status === "fulfilled") {
         const userData = userResult.value.data;
@@ -491,13 +492,13 @@ const HomeFeed = () => {
               </p>
             ) : (
               <div className="mt-4 grid gap-3">
-                 {topContributors.slice(0, 4).map((contributor) => {
-                   const activityScore =
-                     contributor.activity_score ??
-                     (contributor.posts_count ?? 0) +
-                       (contributor.comments_count ?? 0);
-                   return (
-                     <div
+                {topContributors.slice(0, 4).map((contributor) => {
+                  const activityScore =
+                    contributor.activity_score ??
+                    (contributor.posts_count ?? 0) +
+                      (contributor.comments_count ?? 0);
+                  return (
+                    <div
                       className="flex min-w-0 items-center justify-between gap-3"
                       key={contributor.id}
                     >

@@ -17,12 +17,14 @@ AquaHub is a modern React SPA tailored for fish keepers and aquarists. It featur
 ## Installation & Setup Instructions
 
 1. **Clone the repository:**
+
    ```bash
    git clone https://github.com/yairhtet1000/Aqua-Hub-Frontend.git
    cd Aqua-Hub-Frontend
    ```
 
 2. **Install dependencies:**
+
    ```bash
    npm install
    ```
@@ -34,6 +36,7 @@ AquaHub is a modern React SPA tailored for fish keepers and aquarists. It featur
      ```
 
 4. **Run the Development Server:**
+
    ```bash
    npm run dev
    ```

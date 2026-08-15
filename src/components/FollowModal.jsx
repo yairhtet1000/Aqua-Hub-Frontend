@@ -15,7 +15,10 @@ const FollowModal = ({ isOpen, onClose, type, userId, title }) => {
     const fetchUsers = async () => {
       setLoading(true);
       try {
-        const endpoint = type === "followers" ? `/users/${userId}/followers` : `/users/${userId}/following`;
+        const endpoint =
+          type === "followers"
+            ? `/users/${userId}/followers`
+            : `/users/${userId}/following`;
         const response = await api.get(endpoint, { params: { page } });
         const data = response.data;
         setUsers(data.data || []);
@@ -46,7 +49,9 @@ const FollowModal = ({ isOpen, onClose, type, userId, title }) => {
       />
       <div className="relative w-[min(480px,100%)] max-h-[80vh] overflow-hidden rounded-4xl border border-white bg-white p-0 shadow-2xl shadow-slate-950/20 ring-1 ring-slate-200/80 dark:border-slate-800 dark:bg-slate-950">
         <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 dark:border-slate-800">
-          <h3 className="text-lg font-black text-slate-950 dark:text-white">{title}</h3>
+          <h3 className="text-lg font-black text-slate-950 dark:text-white">
+            {title}
+          </h3>
           <button
             onClick={onClose}
             className="grid h-8 w-8 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-900"
@@ -73,12 +78,18 @@ const FollowModal = ({ isOpen, onClose, type, userId, title }) => {
                 >
                   <img
                     className="h-10 w-10 rounded-full object-cover"
-                    src={getImageUrl(u.avatar) || "https://via.placeholder.com/40"}
+                    src={
+                      getImageUrl(u.avatar) || "https://via.placeholder.com/40"
+                    }
                     alt=""
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-bold text-slate-950 dark:text-white">{u.name}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">@{u.name?.replace(/\s/g, "_").toLowerCase()}</p>
+                    <p className="truncate text-sm font-bold text-slate-950 dark:text-white">
+                      {u.name}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      @{u.name?.replace(/\s/g, "_").toLowerCase()}
+                    </p>
                   </div>
                 </div>
               ))}

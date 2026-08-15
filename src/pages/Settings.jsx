@@ -118,9 +118,7 @@ const Settings = ({ section = "profile", basePath = "" }) => {
     }
   };
 
-  const previewSrc = preview.startsWith("blob:")
-    ? preview
-    : preview;
+  const previewSrc = preview.startsWith("blob:") ? preview : preview;
 
   return (
     <div className="mx-auto grid w-full max-w-250 gap-5 px-4 sm:px-6 lg:px-8">

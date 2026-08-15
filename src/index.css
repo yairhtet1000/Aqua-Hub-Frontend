@@ -4,9 +4,11 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: "Roboto", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+  --font-sans:
+    "Roboto", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
-  --font-body: "Roboto", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+  --font-body:
+    "Roboto", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
   --font-display: "Poppins", ui-sans-serif, system-ui, sans-serif;
 }

@@ -68,10 +68,7 @@ const EditPassword = () => {
       </header>
 
       <div className="flex flex-wrap items-center gap-2">
-        <Link
-          className={`${tabBase} ${tabInactive}`}
-          to={editProfilePath}
-        >
+        <Link className={`${tabBase} ${tabInactive}`} to={editProfilePath}>
           Edit profile
         </Link>
         <button type="button" className={`${tabBase} ${tabActive}`} disabled>

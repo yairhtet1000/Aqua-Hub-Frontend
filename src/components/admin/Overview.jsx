@@ -19,13 +19,14 @@ const Overview = () => {
   const fetchStats = useCallback(async () => {
     setLoading(true);
     try {
-      const [usersRes, postsRes, reportsRes, categoriesRes] =
-        await Promise.all([
+      const [usersRes, postsRes, reportsRes, categoriesRes] = await Promise.all(
+        [
           api.get("/admin/users"),
           api.get("/posts"),
           api.get("/admin/reports"),
           api.get("/categories"),
-        ]);
+        ],
+      );
 
       setStats({
         users: usersRes.data.total || usersRes.data.data?.length || 0,

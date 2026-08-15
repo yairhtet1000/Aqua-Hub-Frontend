@@ -130,9 +130,12 @@ const ReportsManager = () => {
 
   const getStatusBadge = (status) => {
     const styles = {
-      pending: "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-200",
-      reviewed: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-200",
-      dismissed: "bg-slate-100 text-slate-600 dark:bg-slate-900 dark:text-slate-300",
+      pending:
+        "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-200",
+      reviewed:
+        "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-200",
+      dismissed:
+        "bg-slate-100 text-slate-600 dark:bg-slate-900 dark:text-slate-300",
     };
     return (
       <span
@@ -162,7 +165,10 @@ const ReportsManager = () => {
             />
             <input
               value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
               placeholder="Search reports..."
               className="h-10 rounded-xl border border-slate-200 bg-white pl-9 pr-4 text-sm font-semibold text-slate-700 focus:outline-teal-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
             />
@@ -174,7 +180,10 @@ const ReportsManager = () => {
             />
             <select
               value={statusFilter}
-              onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setPage(1);
+              }}
               className="h-10 rounded-xl border border-slate-200 bg-white pl-9 pr-4 text-sm font-semibold text-slate-700 focus:outline-teal-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
             >
               {STATUS_OPTIONS.map((option) => (
@@ -231,7 +240,9 @@ const ReportsManager = () => {
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {reports.map((report) => {
-                  const ReportableIcon = getReportableIcon(report.reportable_type);
+                  const ReportableIcon = getReportableIcon(
+                    report.reportable_type,
+                  );
                   return (
                     <tr
                       key={report.id}
@@ -254,11 +265,15 @@ const ReportsManager = () => {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <ReportableIcon size={16} className="text-slate-400" />
+                          <ReportableIcon
+                            size={16}
+                            className="text-slate-400"
+                          />
                           <span className="font-semibold text-slate-700 dark:text-slate-200">
                             {report.reportable_type === "App\\Models\\Post"
                               ? "Post"
-                              : report.reportable_type === "App\\Models\\Comment"
+                              : report.reportable_type ===
+                                  "App\\Models\\Comment"
                                 ? "Comment"
                                 : "Unknown"}
                           </span>
@@ -292,7 +307,9 @@ const ReportsManager = () => {
                               </button>
                               <button
                                 onClick={() => handleDeleteContent(report)}
-                                disabled={actionLoading === `delete-${report.id}`}
+                                disabled={
+                                  actionLoading === `delete-${report.id}`
+                                }
                                 className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-3 text-xs font-bold text-rose-700 transition hover:bg-rose-100 disabled:opacity-60 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-200"
                                 title="Delete reported content"
                               >
